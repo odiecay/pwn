@@ -34,14 +34,14 @@
       .wrap {
         max-width: 980px;
         margin: 0 auto;
-        padding: 22px 16px 40px;
+        padding: 16px 16px 20px;
       }
       .top {
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 12px;
-        padding: 6px 2px 18px;
+        padding: 4px 2px 12px;
       }
       .brand {
         color: var(--bright);
@@ -58,7 +58,7 @@
         border-radius: 14px;
         padding: 22px;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
-        margin-bottom: 16px;
+        margin-bottom: 12px;
       }
       h1 {
         margin: 0 0 6px;
@@ -144,7 +144,7 @@
       th,
       td {
         border-bottom: 1px solid var(--line);
-        padding: 9px 8px;
+        padding: 7px 8px;
         text-align: left;
         vertical-align: top;
       }
@@ -253,6 +253,10 @@
           On PS4 14.x the root URL runs the chain automatically. Add
           <code>?menu=1</code> to keep this page.
         </div>
+        <div class="hint">
+          PS4 9.00 - 11.52 needs <code>src/ps4/payload.bin</code>. PS4 12.00+
+          payloads are bundled.
+        </div>
       </section>
 
       <div class="foot">
@@ -265,7 +269,7 @@
       </div>
     </div>
 
-    <script src="src/strategy.js?v=8"></script>
+    <script src="src/strategy.js?v=11"></script>
     <script>
       (function () {
         var params = new URLSearchParams(location.search);
@@ -331,7 +335,8 @@
           return;
         }
 
-        why.textContent = route.note;
+        // The route-specific explanation is not repeated here; the paragraph
+        // and the firmware table already say what runs.
 
         if (route.engine === 'combined') {
           add('Start Wobkot + Afterglow', 'afterglow/combined.html?run=1', 'primary');

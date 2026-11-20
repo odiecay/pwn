@@ -27,7 +27,8 @@ not the same; keep the notices with the files if you redistribute this folder.
 ## Payloads
 
 - `afterglow/goldhen.bin` - GoldHEN by SiSTRo and contributors. GoldHEN is a
-  separate project; its own license and source apply.
+  separate GPL-3.0 project; source is at https://github.com/GoldHEN/GoldHEN.
+  The bundled file is the copy supplied by Afterglow.
 - `afterglow/hen.bin` - ps4-hen, as distributed by Afterglow. See Afterglow's
   README and TECHNICAL.md for the 14.00 patch note.
 - `src/ps4/payload.bin` is not bundled; if you add one, its license is whatever

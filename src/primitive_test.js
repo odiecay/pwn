@@ -20,6 +20,16 @@
     node.className = tone || '';
   }
 
+  function showLog(force) {
+    const wrap = el('log-wrap');
+    const button = el('toggle-log');
+    if (!wrap) return;
+
+    const show = force === undefined ? wrap.style.display === 'none' : force;
+    wrap.style.display = show ? 'block' : 'none';
+    if (button) button.textContent = show ? 'Hide log' : 'Show log';
+  }
+
   function loadScript(src, type) {
     return new Promise((resolve, reject) => {
       const script = document.createElement('script');
@@ -36,6 +46,7 @@
 
     state.busy = true;
     el('start').disabled = true;
+    showLog(false);
     setStatus('Running...', 'running');
 
     try {
@@ -106,11 +117,13 @@
       logger.info('===PASS===');
 
       setStatus(`PASS - primitive ready in ${elapsed} ms. Close and reopen the browser.`, 'done');
+      showLog(false);
       state.done = true;
     } catch (err) {
       const message = err && err.message ? err.message : String(err);
       logger.error(message);
       if (err && err.stack) logger.error(err.stack);
+      showLog(true);
       setStatus('FAIL - primitive did not validate. See the log.', 'fail');
     } finally {
       state.busy = false;
@@ -122,6 +135,11 @@
     el('start').addEventListener('click', function (event) {
       event.preventDefault();
       run();
+    });
+
+    el('toggle-log').addEventListener('click', function (event) {
+      event.preventDefault();
+      showLog();
     });
   });
 })();

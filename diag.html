@@ -36,6 +36,22 @@
         margin: 0 auto;
         padding: 16px;
       }
+      .top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 6px 2px 18px;
+      }
+      .brand {
+        color: var(--bright);
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        font-size: 15px;
+      }
+      .brand span {
+        color: var(--accent);
+      }
       h1 {
         font-size: 22px;
         color: var(--bright);
@@ -58,6 +74,13 @@
         word-break: break-all;
         color: var(--dim);
       }
+      .note-text {
+        color: var(--dim);
+        font-size: 13px;
+        line-height: 1.5;
+        max-width: 85ch;
+        margin: 0;
+      }
       table {
         width: 100%;
         border-collapse: collapse;
@@ -76,6 +99,9 @@
       td code {
         font-family: var(--mono);
         color: var(--accent);
+      }
+      tbody tr:nth-child(even) {
+        background: #0c1116;
       }
       .ok {
         color: var(--ok);
@@ -113,6 +139,10 @@
   </head>
   <body>
     <div class="wrap">
+      <div class="top">
+        <div class="brand">PS4 <span>WEBKIT</span> EXPLOIT</div>
+        <div class="mono">diagnostics</div>
+      </div>
       <div class="panel">
         <h1>Diagnostics</h1>
         <p class="mono">
@@ -150,16 +180,16 @@
 
       <div class="panel">
         <h2>Notes</h2>
-        <p class="mono">
+        <p class="note-text">
           HTTP status 200 is required for every non-optional file. A 404 means
-          the server is pointed at the wrong directory. text/javascript for .js
-          and text/cache-manifest for .appcache are required by the console's
-          browser.
+          the server is pointed at the wrong directory. <code>.js</code> must be
+          served as <code>text/javascript</code> and <code>.appcache</code> as
+          <code>text/cache-manifest</code>.
         </p>
       </div>
     </div>
 
-    <script src="src/strategy.js?v=8"></script>
-    <script src="src/diag.js?v=8" defer></script>
+    <script src="src/strategy.js?v=11"></script>
+    <script src="src/diag.js?v=11" defer></script>
   </body>
 </html>

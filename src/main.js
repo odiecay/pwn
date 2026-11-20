@@ -7,7 +7,7 @@
 function load_script(src) {
   return new Promise((resolve, reject) => {
     const script = document.createElement('script');
-    script.src = src;
+    script.src = src + (src.indexOf('?') === -1 ? '?' : '&') + 'v=11';
     script.onload = resolve;
     script.onerror = () => {
       reject(new Error(`Failed to load script: ${src}`));
@@ -32,6 +32,19 @@ function append_line(text) {
   if (!console_el) return;
 
   console_el.append(text + '\n');
+  console_el.scrollTop = console_el.scrollHeight;
+}
+
+function append_link(text, href) {
+  const console_el = document.getElementById('console');
+  if (!console_el) return;
+
+  const link = document.createElement('a');
+  link.href = href;
+  link.textContent = text;
+  link.style.color = '#9fb3d0';
+  console_el.append(link);
+  console_el.append('\n');
   console_el.scrollTop = console_el.scrollHeight;
 }
 
@@ -108,6 +121,28 @@ async function main() {
       break;
     default:
       throw new Error(`Unsupported console ${version.console}`);
+  }
+
+  if (version.console === 4) {
+    const payload = await fetch('src/ps4/payload.bin', { method: 'HEAD' });
+    if (!payload.ok) {
+      logger.error('Missing src/ps4/payload.bin.');
+      append_line('Put a PS4 payload there before running the legacy chain.');
+      append_link('Payload instructions', 'PAYLOADS.md');
+      return;
+    }
+  }
+
+  if (version.console === 5) {
+    for (const file of ['src/ps5/elfldr.elf', 'src/ps5/kexp.bin']) {
+      const payload = await fetch(file, { method: 'HEAD' });
+      if (!payload.ok) {
+        logger.error(`Missing ${file}.`);
+        append_line('Put the PS5 payload files in src/ps5/.');
+        append_link('Payload instructions', 'PAYLOADS.md');
+        return;
+      }
+    }
   }
 
   await load_script('src/userland.js');

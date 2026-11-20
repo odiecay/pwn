@@ -3,19 +3,20 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Wobkot self-test - no kernel exploit</title>
+    <title>Wobkot self-test</title>
     <style>
       :root {
-        --bg: #0b0d10;
-        --panel: #0e1116;
-        --line: #1e2732;
-        --fg: #c8ced8;
-        --bright: #e6ebf2;
-        --dim: #7c8798;
-        --ok: #7fd0a0;
-        --bad: #d08a7f;
-        --warn: #d8c07f;
-        --accent: #9fb3d0;
+        --bg: #0a0c0f;
+        --panel: #0f1318;
+        --panel2: #121820;
+        --line: #1e2833;
+        --fg: #c9d1dc;
+        --bright: #eef3f9;
+        --dim: #7d8a9a;
+        --ok: #7fe0a8;
+        --bad: #ff9b8f;
+        --warn: #e9cf8a;
+        --accent: #8fc7ff;
         --sans: "Segoe UI", system-ui, sans-serif;
         --mono: Consolas, "DejaVu Sans Mono", monospace;
       }
@@ -25,43 +26,60 @@
       html,
       body {
         margin: 0;
-        padding: 0;
         min-height: 100%;
-        background: var(--bg);
+        background: radial-gradient(1200px 600px at 50% -10%, #12202c 0%, var(--bg) 55%);
         color: var(--fg);
         font: 16px/1.45 var(--sans);
       }
       .wrap {
-        max-width: 1000px;
+        max-width: 920px;
         margin: 0 auto;
-        padding: 16px;
+        padding: 20px 16px 40px;
       }
-      .panel {
+      .top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 6px 2px 18px;
+      }
+      .brand {
+        color: var(--bright);
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        font-size: 15px;
+      }
+      .brand span {
+        color: var(--accent);
+      }
+      .badge {
         border: 1px solid var(--line);
         background: var(--panel);
-        padding: 16px;
-        margin-bottom: 14px;
+        color: var(--dim);
+        padding: 6px 10px;
+        border-radius: 999px;
+        font: 12px/1 var(--mono);
+      }
+      .hero {
+        border: 1px solid var(--line);
+        background: linear-gradient(180deg, var(--panel2), var(--panel));
+        border-radius: 14px;
+        padding: 24px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
       }
       h1 {
-        margin: 0 0 8px;
-        font-size: 22px;
+        margin: 0 0 6px;
+        font-size: clamp(24px, 4vw, 32px);
+        line-height: 1.1;
         color: var(--bright);
       }
-      p {
-        margin: 8px 0;
-      }
-      .muted {
-        color: var(--dim);
-      }
-      .warn {
-        color: var(--warn);
-      }
       #status {
-        font-family: var(--mono);
-        font-size: 15px;
-        color: var(--accent);
         min-height: 24px;
-        margin: 10px 0;
+        color: var(--dim);
+        font-size: 15px;
+      }
+      #status.running {
+        color: var(--accent);
       }
       #status.done {
         color: var(--ok);
@@ -71,72 +89,162 @@
         color: var(--bad);
         font-weight: 700;
       }
+      .muted {
+        color: var(--dim);
+        margin: 10px 0 14px;
+        max-width: 70ch;
+      }
+      .warn {
+        color: var(--warn);
+        margin: 10px 0 16px;
+        max-width: 70ch;
+        font-size: 14px;
+      }
+      .checks {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        list-style: none;
+        padding: 0;
+        margin: 16px 0;
+      }
+      .checks li {
+        border: 1px solid var(--line);
+        background: #0c1116;
+        border-radius: 9px;
+        padding: 10px 12px;
+        color: var(--dim);
+        font-size: 13px;
+      }
+      .checks li strong {
+        display: block;
+        color: var(--fg);
+        font-size: 14px;
+        margin-bottom: 2px;
+      }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 18px;
+      }
       .btn {
         display: inline-block;
         border: 1px solid #2b3a4b;
-        background: #16202b;
+        background: #151f2a;
         color: var(--bright);
-        padding: 12px 18px;
-        font: 16px/1 var(--sans);
-        border-radius: 4px;
+        padding: 12px 16px;
+        border-radius: 8px;
+        font: 15px/1 var(--sans);
         cursor: pointer;
         text-decoration: none;
       }
       .btn:hover {
-        background: #1c2a38;
+        background: #1b2835;
       }
       .btn.primary {
-        border-color: #3b6a54;
-        background: #173326;
-        color: #b9f0d1;
+        border-color: #36735a;
+        background: #123426;
+        color: #c3f2d7;
+      }
+      .btn.ghost {
+        background: transparent;
+        color: var(--dim);
+      }
+      #log-wrap {
+        margin-top: 18px;
+        display: none;
       }
       #console {
         width: 100%;
-        height: 55vh;
-        min-height: 280px;
+        height: 36vh;
+        min-height: 200px;
         margin: 0;
         padding: 14px;
         overflow: auto;
-        box-sizing: border-box;
+        background: #07090c;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        color: #b8c2ce;
         font: 12px/1.45 var(--mono);
-        background: #131416;
-        color: #c1c2c5;
         white-space: pre-wrap;
       }
-      .row {
+      .foot {
         display: flex;
         flex-wrap: wrap;
-        gap: 10px;
-        align-items: center;
+        gap: 14px;
+        justify-content: space-between;
+        color: #5f6b79;
+        font-size: 12px;
+        margin-top: 18px;
       }
-      a {
+      .foot a {
+        color: var(--dim);
+        text-decoration: none;
+      }
+      .foot a:hover {
         color: var(--accent);
+      }
+      @media (max-width: 680px) {
+        .wrap {
+          padding: 12px 10px 28px;
+        }
+        .hero {
+          padding: 18px;
+        }
+        .checks {
+          grid-template-columns: 1fr;
+        }
       }
     </style>
   </head>
   <body>
     <div class="wrap">
-      <div class="panel">
+      <div class="top">
+        <div class="brand">WOBKOT <span>SELF-TEST</span></div>
+        <div class="badge">PS4</div>
+      </div>
+
+      <section class="hero">
         <h1>Wobkot self-test</h1>
+        <div id="status">Ready.</div>
+
         <p class="muted">
-          Builds Wobkot's browser primitive and checks the WebKit offsets. It does
-          not touch the kernel and does not load a payload.
+          Builds Wobkot's browser primitive and checks the WebKit offsets. It
+          does not touch the kernel and does not load a payload.
         </p>
+
+        <ul class="checks">
+          <li><strong>Browser</strong>ARW read/write</li>
+          <li><strong>Gadgets</strong>WebKit bytes</li>
+          <li><strong>Bases</strong>libc / libkernel</li>
+          <li><strong>ROP</strong>pivot + getpid</li>
+        </ul>
+
         <p class="warn">
           This grooms the WebKit heap. Close and reopen the browser before
           running the real chain.
         </p>
-        <div class="row">
-          <button id="start" class="btn primary" type="button">Run self-test</button>
-          <a class="btn" href="index.html?menu=1">Menu</a>
-          <a class="btn" href="afterglow/index.html">Afterglow</a>
-        </div>
-        <div id="status">Ready.</div>
-      </div>
 
-      <pre id="console"></pre>
+        <div class="actions">
+          <button id="start" class="btn primary" type="button">Run self-test</button>
+          <a class="btn" href="afterglow/index.html">Afterglow</a>
+          <a class="btn ghost" href="index.html?menu=1">Menu</a>
+          <button id="toggle-log" class="btn ghost" type="button">Show log</button>
+        </div>
+
+        <div id="log-wrap"><pre id="console"></pre></div>
+      </section>
+
+      <div class="foot">
+        <span>Wobkot: MIT, ufm42 &nbsp; Afterglow: AGPL-3.0, well0nez</span>
+        <span>
+          <a href="index.html?menu=1">menu</a>
+          &nbsp; <a href="afterglow/index.html">Afterglow</a>
+        </span>
+      </div>
     </div>
 
-    <script src="src/primitive_test.js?v=8" defer></script>
+    <script src="src/primitive_test.js?v=11" defer></script>
   </body>
 </html>

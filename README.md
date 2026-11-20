@@ -1,4 +1,4 @@
-# PS4 WebKit Toolkit - Wobkot + Afterglow
+# PS4 WebKit exploit host - Wobkot + Afterglow
 
 Live copy: **https://odiecay.github.io/pwn/**  
 Source: **https://github.com/odiecay/pwn**
@@ -19,6 +19,16 @@ PS4 12.00 - 13.52   Afterglow full chain
 PS4 9.00 - 11.52    Wobkot legacy (Lapse kernel)
 PS5                 Wobkot PS5 chain (upstream support)
 ```
+
+## Screenshots
+
+![Hub](screenshots/hub.png)
+
+![Run page](screenshots/run-page.png)
+
+![Self-test](screenshots/self-test.png)
+
+![Diagnostics](screenshots/diagnostics.png)
 
 ## What changed from upstream Wobkot
 
@@ -184,6 +194,8 @@ checks all read that file. An unknown firmware is refused rather than run with
 someone else's offsets.
 
 ## Payloads
+
+See `PAYLOADS.md` for the full per-firmware matrix.
 
 - `afterglow/goldhen.bin` - GoldHEN, bundled by Afterglow. Recommended for
   12.00-14.02.

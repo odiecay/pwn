@@ -11,7 +11,7 @@
   const PAYLOAD_KEY = 'wobkot.fast.payload';
   const HISTORY_KEY = 'wobkot.fast.history';
   const ATTEMPT_KEY = 'wobkot.fast.kernelAttempted';
-  const BUILD = '8';
+  const BUILD = '11';
 
   const state = {
     busy: false,
@@ -108,7 +108,7 @@
 
     const show = force === undefined ? wrap.style.display === 'none' : force;
     wrap.style.display = show ? 'block' : 'none';
-    if (button) button.textContent = show ? 'hide log' : 'show log';
+    if (button) button.textContent = show ? 'Hide log' : 'Show log';
   }
 
   function withVersion(src) {
@@ -450,7 +450,7 @@
 
   function ready() {
     setHeadline('Ready', '');
-    setStatus('Press start.', 'idle');
+    setStatus('Press Start.', 'idle');
     setButtons(['start', 'fallback', 'menu']);
     resetSteps();
   }
