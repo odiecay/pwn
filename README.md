@@ -73,7 +73,7 @@ console before another attempt; this is what keeps a failed attempt from
 compounding into a crash. The only exception is an advanced `?force=1`, which
 you should not need.
 
-Confirmed on a retail PS4 14.02: the stable chain completed in **4.0 s**
+Confirmed on a retail PS4 14.02: the stable chain completed in about **4.5 s**
 with the original Wobkot ARW loop, the bulk payload copy and prefetch. A 3.7 s
 run used a rewritten ARW spray that was not stable across attempts; that rewrite
 has been reverted. The remaining time is Afterglow's kernel exploit.
