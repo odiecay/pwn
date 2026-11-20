@@ -128,17 +128,6 @@
     }
   }
 
-  function fromHub() {
-    try {
-      const ref = new URL(document.referrer);
-      if (ref.origin !== location.origin) return false;
-      const path = ref.pathname;
-      return path === '/' || path === '/index.html' || path.endsWith('/index.html');
-    } catch (err) {
-      return false;
-    }
-  }
-
   function query() {
     return new URLSearchParams(location.search);
   }
@@ -377,7 +366,20 @@
 
   function boot() {
     const params = query();
-    state.armed = params.get('run') === '1' && fromHub();
+    state.armed = params.get('run') === '1';
+
+    // The server 302s / straight to this page with run=1, and the console
+    // browser does not always send a referrer for that redirect. Arm on the
+    // flag alone, then remove it from the URL so a restored session comes
+    // back without the flag and cannot fire unattended.
+    if (state.armed) {
+      try {
+        const keep = params.get('debug') === '1' ? '?debug=1' : '';
+        history.replaceState(null, '', location.pathname + keep);
+      } catch (err) {
+        // history can be unavailable; the run still proceeds
+      }
+    }
 
     restorePayload();
 
