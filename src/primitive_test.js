@@ -66,6 +66,9 @@
       if (version.console === 4) {
         await loadScript('src/afterglow_host.js');
 
+        logger.info('Checking the ARW round trip...');
+        afterglow_check_arw();
+
         logger.info('Checking WebKit base and gadgets...');
         const base = afterglow_precheck_webkit_base();
         afterglow_validate_gadgets(base);

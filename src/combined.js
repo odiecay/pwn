@@ -164,6 +164,7 @@
       const t0 = performance.now();
 
       arw.init();
+      afterglow_check_arw();
       const base = afterglow_precheck_webkit_base();
       afterglow_validate_gadgets(base);
       const expected_bases = afterglow_precheck_kernel_bases(base);
