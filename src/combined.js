@@ -12,7 +12,7 @@
   const HISTORY_KEY = 'wobkot.fast.history';
   const ATTEMPT_KEY = 'wobkot.fast.kernelAttempted';
   const ALREADY_KEY = 'wobkot.fast.alreadyJailbroken';
-  const BUILD = '22';
+  const BUILD = '23';
 
   const state = {
     busy: false,
@@ -187,12 +187,13 @@
   }
 
   function prefetch(url) {
-    // Warm the HTTP cache for the payload files. The body is read so the
-    // browser actually downloads it, then dropped. This runs after the heap
-    // spray, so the temporary buffer is not competing with the primitive.
+    // Warm the HTTP cache for the payload files. Read the body into a Blob,
+    // not an ArrayBuffer: the body still lands in the cache, but the 300 KB
+    // lives in the browser's blob store instead of the JS heap. This runs
+    // after the heap spray, so it does not compete with the primitive.
     try {
       fetch(url, { cache: 'force-cache' })
-        .then((res) => (res.ok ? res.arrayBuffer() : null))
+        .then((res) => (res.ok ? res.blob() : null))
         .catch(() => {});
     } catch (err) {
       // prefetch is an optimisation, never a failure
