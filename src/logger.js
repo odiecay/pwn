@@ -18,6 +18,13 @@ const logger = {
 
   init() {
     this.console = document.getElementById('console');
+    this.lines = [];
+    this.bufferOnly = false;
+  },
+  render() {
+    if (!this.console) return;
+    this.console.textContent = (this.lines || []).join('');
+    this.console.scrollTop = this.console.scrollHeight;
   },
   info(msg) {
     this.log('[+]', `${msg}`);
@@ -53,12 +60,22 @@ const logger = {
     }
   },
   log(prefix, msg) {
+    const line = `${prefix} ${String(msg).replace(/\n/g, `\n${prefix} `)}\n`;
+
+    if (this.bufferOnly) {
+      if (!this.lines) this.lines = [];
+      this.lines.push(line);
+      if (this.lines.length > 500) this.lines.shift();
+      this.send_remote(prefix, msg);
+      return;
+    }
+
     if (!this.console) {
       this.send_remote(prefix, msg);
       return;
     }
 
-    this.console.append(`${prefix} ${String(msg).replace(/\n/g, `\n${prefix} `)}\n`);
+    this.console.append(line);
     this.console.scrollTop = this.console.scrollHeight;
     this.send_remote(prefix, msg);
   },

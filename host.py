@@ -35,6 +35,20 @@ DEFAULT_CERT = ROOT / "localhost.pem"
 
 CACHEABLE_SUFFIXES = (".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico")
 
+LOG_FILE: Path | None = None
+
+
+def emit(line: str) -> None:
+    """Print a console line and keep a timestamped copy for later diagnosis."""
+    print(line, flush=True)
+    if LOG_FILE is None:
+        return
+    try:
+        with LOG_FILE.open("a", encoding="utf-8") as handle:
+            handle.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} {line}\n")
+    except OSError:
+        pass
+
 
 class Handler(SimpleHTTPRequestHandler):
     """Static handler with the headers the console browser needs."""
@@ -142,14 +156,25 @@ class Handler(SimpleHTTPRequestHandler):
                 data = json.loads(body)
             except json.JSONDecodeError:
                 data = {"raw": body}
-            print(
+            phases = data.get("phases")
+            split = ""
+            if isinstance(phases, dict):
+                parts = []
+                for name, value in phases.items():
+                    if isinstance(value, float):
+                        parts.append(f"{name}={value:.2f}")
+                    elif isinstance(value, (int, bool)):
+                        parts.append(f"{name}={value}")
+                if parts:
+                    split = " " + " ".join(parts)
+            emit(
                 "[PS4] RUN "
                 f"ok={data.get('ok')} "
-                f"sec={data.get('sec')} "
+                f"sec={data.get('sec')}"
+                f"{split} "
                 f"fw={data.get('fw')} "
                 f"payload={data.get('payload')} "
-                f"note={data.get('note', '')}",
-                flush=True,
+                f"note={data.get('note', '')}"
             )
             self.send_response(204)
             self.send_header("Content-Length", "0")
@@ -161,8 +186,7 @@ class Handler(SimpleHTTPRequestHandler):
         if path == "/log":
             body = read_body()
             for line in body.splitlines():
-                sys.stdout.write(f"[PS4] {line}\n")
-            sys.stdout.flush()
+                emit(f"[PS4] {line}")
 
             self.send_response(204)
             self.send_header("Content-Length", "0")
@@ -306,11 +330,20 @@ def main() -> int:
     parser.add_argument("--cert", type=Path, default=DEFAULT_CERT, help="TLS certificate (PEM)")
     parser.add_argument("--key", type=Path, default=None, help="TLS private key (PEM; defaults to the cert file)")
     parser.add_argument("--quiet", action="store_true", help="do not log every request")
+    parser.add_argument(
+        "--log-file",
+        type=Path,
+        default=ROOT / "host.log",
+        help="append PS4 run and console lines here (default: host.log)",
+    )
     parser.add_argument("--self-test", action="store_true", help="serve privately, check files, exit")
     args = parser.parse_args()
 
     if args.self_test:
         return self_test()
+
+    global LOG_FILE
+    LOG_FILE = args.log_file
 
     cert = args.cert
     key = args.key or args.cert

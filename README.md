@@ -30,6 +30,8 @@ PS5                 Wobkot PS5 chain (upstream support)
 
 ![Jailbroken](screenshots/run-success.png)
 
+![Details](screenshots/run-details.png)
+
 ![Self-test](screenshots/self-test.png)
 
 ![Diagnostics](screenshots/diagnostics.png)
@@ -48,8 +50,9 @@ copied from them:
 - Afterglow web host: https://github.com/well0nez/afterglow-web - the kernel
   stage this build vendors
 
-The run page follows that pattern: one big spinner, one status line, then a
-green check or red X. The technical steps and log live behind **Details**.
+The run page follows that pattern: one big status line, then a green check or
+red X. The technical steps, payload choice, recent runs and log live behind
+**Details**.
 
 ## What changed from upstream Wobkot
 
@@ -95,14 +98,26 @@ compounding into a crash. The only exception is an advanced `?force=1`, which
 you should not need.
 
 Confirmed on a retail PS4 14.02: the stable chain completed in about **4.5 s**
-with the original Wobkot ARW loop, the bulk payload copy and prefetch. A 3.7 s
-run used a rewritten ARW spray that was not stable across attempts; that rewrite
-has been reverted. The remaining time is Afterglow's kernel exploit.
+with the original Wobkot ARW loop, the bulk payload copy and prefetch. A run
+that stops at the browser's memory dialog reports about **7 s**, because the
+timer includes the time the dialog is waiting for **OK**. A 3.7 s run used a
+rewritten ARW spray that was not stable across attempts; that rewrite has been
+reverted. The remaining time is Afterglow's kernel exploit.
+
+On 14.02 the browser can show **"there is not enough free system memory"**
+during the browser stage. This is Wobkot's spray reaching the browser's heap
+limit; press **OK** and the spray continues. The run still completes. The page
+keeps its own heap small (the live log is buffered off-DOM and the payload is
+prefetched through the HTTP cache, not read into `ArrayBuffer`s) so it does not
+add pressure at that point. Reloading while the dialog is up is what breaks the
+run.
 
 The run page records the last attempts locally and `host.py` prints one
-`[PS4] RUN ok=... sec=...` line per completed run. The page also allows only one
-kernel attempt per browser session: after an attempt it shows **Reboot
-required** instead of firing again.
+`[PS4] RUN ok=... sec=...` line per completed run. Newer runs add a phase split:
+`load=... browser=... check=... kernel=...`, which shows where the time went.
+The same line is appended to `host.log` when the server is running. The page
+also allows only one kernel attempt per browser session: after an attempt it
+shows **Reboot required** instead of firing again.
 
 If the chain stops at validation, close and reopen the browser before
 retrying, or use **Afterglow**. If the log says the handles are
@@ -265,10 +280,12 @@ engine no longer matches upstream; rerun `py tools/update_afterglow.py
 - `diag.html` fetches every required file and shows status, MIME type, size and
   `Cache-Control`. A 404 or `text/plain` for a `.js` file is a server problem.
 - Add `?debug=1` to the fast-path URL to enable verbose lines and POST the log
-  to `host.py` (`[PS4] ...` in the server terminal). Without it, the page keeps
-  the log local and shows only the four stages and the result.
-- The fast-path page has a **show log** button whenever you need the full
-  Wobkot/Afterglow trace. On failure it opens automatically.
+  to `host.py` (`[PS4] ...` in the server terminal and `host.log`). Without it,
+  the page keeps the log in a capped in-memory buffer and shows only the four
+  stages and the result.
+- The fast-path page has a **Show log** button whenever you need the full
+  Wobkot/Afterglow trace. The buffer is rendered only when you open it, so it
+  does not add DOM work during the exploit.
 
 ## Safety
 

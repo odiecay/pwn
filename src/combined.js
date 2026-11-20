@@ -11,16 +11,17 @@
   const PAYLOAD_KEY = 'wobkot.fast.payload';
   const HISTORY_KEY = 'wobkot.fast.history';
   const ATTEMPT_KEY = 'wobkot.fast.kernelAttempted';
-  const BUILD = '13';
+  const BUILD = '16';
 
   const state = {
     busy: false,
     done: false,
     armed: false,
     started: 0,
-    timer: null,
     step: null,
     fw: '',
+    phases: {},
+    lastPhase: 0,
     kernelTouched: false,
     unsafe: false,
     ctx: null,
@@ -40,6 +41,10 @@
     if (!node) return;
     node.textContent = text;
     node.className = tone || '';
+  }
+
+  function setHint(text) {
+    setText('hint', text || '');
   }
 
   function setHeadline(text, tone) {
@@ -66,9 +71,17 @@
     const button = el('toggle-details');
     if (!node) return;
 
-    const show = force === undefined ? node.style.display === 'none' : force;
+    const show = force === undefined ? node.style.display !== 'block' : force;
     node.style.display = show ? 'block' : 'none';
     if (button) button.textContent = show ? 'Hide details' : 'Details';
+
+    if (show && force === undefined) {
+      try {
+        node.scrollIntoView({ block: 'start' });
+      } catch (err) {
+        node.scrollIntoView(true);
+      }
+    }
   }
 
   function updatePayloadSummary() {
@@ -91,14 +104,8 @@
     if (status) node.classList.add(status);
   }
 
-  function setBar(percent) {
-    const node = el('bar');
-    if (node) node.style.width = percent + '%';
-  }
-
   function resetSteps() {
     for (const name of ['webkit', 'validate', 'kernel', 'payload']) setStep(name, '');
-    setBar(0);
   }
 
   function setTiming() {
@@ -108,16 +115,27 @@
   }
 
   function startTimer() {
-    stopTimer();
     state.started = performance.now();
+    state.phases = {};
+    state.lastPhase = 0;
     setTiming();
-    state.timer = setInterval(setTiming, 100);
   }
 
   function stopTimer() {
-    if (state.timer !== null) {
-      clearInterval(state.timer);
-      state.timer = null;
+    setTiming();
+  }
+
+  function markPhase(name) {
+    if (!state.started) return;
+    const elapsed = (performance.now() - state.started) / 1000;
+    const previous = state.lastPhase || 0;
+    state.phases[name] = elapsed - previous;
+    state.lastPhase = elapsed;
+    setTiming();
+    try {
+      logger.debug(`[phase] ${name} ${state.phases[name].toFixed(1)} s`);
+    } catch (err) {
+      // logging must never break the run
     }
   }
 
@@ -126,9 +144,18 @@
     const button = el('toggle-log');
     if (!wrap) return;
 
-    const show = force === undefined ? wrap.style.display === 'none' : force;
+    const show = force === undefined ? wrap.style.display !== 'block' : force;
     wrap.style.display = show ? 'block' : 'none';
     if (button) button.textContent = show ? 'Hide log' : 'Show log';
+
+    if (show && typeof logger !== 'undefined' && logger && logger.render) logger.render();
+    if (show) {
+      try {
+        wrap.scrollIntoView({ block: 'nearest' });
+      } catch (err) {
+        wrap.scrollIntoView(false);
+      }
+    }
   }
 
   function withVersion(src) {
@@ -146,11 +173,12 @@
     });
   }
 
-  function prefetch(url) {
+  function prefetchLink(url) {
     try {
-      fetch(url, { cache: 'force-cache' })
-        .then((res) => (res.ok ? res.arrayBuffer() : null))
-        .catch(() => {});
+      const link = document.createElement('link');
+      link.rel = 'prefetch';
+      link.href = url;
+      document.head.appendChild(link);
     } catch (err) {
       // prefetch is an optimisation, never a failure
     }
@@ -196,22 +224,52 @@
     }
   }
 
+  function phaseText(entry) {
+    const phases = entry && entry.phases;
+    if (!phases) return '';
+    const parts = [];
+    for (const name of ['load', 'browser', 'check', 'kernel']) {
+      if (typeof phases[name] === 'number' && isFinite(phases[name])) {
+        parts.push(name + ' ' + phases[name].toFixed(1));
+      }
+    }
+    return parts.join(' · ');
+  }
+
   function renderHistory() {
     const node = el('history');
     if (!node) return;
 
+    node.textContent = '';
     const history = readHistory();
     if (!history.length) {
-      node.textContent = '';
+      const empty = document.createElement('div');
+      empty.className = 'run-empty';
+      empty.textContent = 'No runs recorded yet.';
+      node.appendChild(empty);
       return;
     }
 
-    node.textContent =
-      'last runs: ' +
-      history
-        .slice(0, 8)
-        .map((entry) => `${entry.sec}s ${entry.ok ? 'ok' : 'fail'}`)
-        .join('  ·  ');
+    for (const entry of history.slice(0, 8)) {
+      const row = document.createElement('div');
+      row.className = 'run-row';
+
+      const time = document.createElement('b');
+      time.textContent = (entry.sec || '?') + ' s';
+      row.appendChild(time);
+
+      const result = document.createElement('span');
+      result.className = entry.ok ? 'ok' : 'bad';
+      result.textContent = entry.ok ? 'ok' : 'fail';
+      row.appendChild(result);
+
+      const split = document.createElement('span');
+      split.className = 'run-split';
+      split.textContent = phaseText(entry);
+      if (split.textContent) row.appendChild(split);
+
+      node.appendChild(row);
+    }
   }
 
   function reportRun(entry) {
@@ -233,6 +291,7 @@
       ok,
       fw: state.fw,
       payload: selectedPayload(),
+      phases: state.phases,
       note: (note || '').slice(0, 160),
       t: Date.now(),
     };
@@ -298,6 +357,7 @@
 
     setIcon('fail');
     setHeadline('Stopped', 'fail');
+    setHint('');
     setError(message);
     showLog(false);
 
@@ -332,10 +392,10 @@
     setIcon('running');
     setHeadline('Running', '');
     setStatus('Starting...', 'running');
+    setHint('');
     setButtons([]);
     resetSteps();
     startTimer();
-    setBar(5);
 
     try {
       // Keep the proven load order. Wobkot's primitive is heap-sensitive, and
@@ -343,6 +403,7 @@
       // module is loaded only after the primitive and validation are done.
       await loadScript('../src/logger.js');
       logger.init();
+      logger.bufferOnly = true;
       install_error_handlers();
 
       await loadScript('../src/strategy.js');
@@ -350,6 +411,7 @@
       await loadScript('../src/ps4/impl.js');
       await loadScript('../src/userland.js');
       await loadScript('../src/afterglow_host.js');
+      markPhase('load');
 
       version.init();
       state.fw = version.key;
@@ -360,18 +422,30 @@
         throw new Error(`This page is for PS4 14.00-14.02. Detected ${version}.`);
       }
 
+      // Warm the kernel module and the files it will ask for through the HTTP
+      // cache, not through JS buffers. The old prefetch read the bodies into
+      // ArrayBuffers and held them across the heap spray, which is exactly the
+      // wrong time to add memory pressure.
+      prefetchLink(withVersion('../src/afterglow_bridge.js'));
+      prefetchLink('../src/afterglow_fast.js');
+      const payload_choice = selectedPayload();
+      if (payload_choice === 'goldhen') prefetchLink('goldhen.bin');
+      else if (payload_choice === 'hen') prefetchLink('hen.bin');
+      prefetchLink('patchset-' + version.key.replace('.', '') + '.bin');
+
       state.step = 'webkit';
       setStep('webkit', 'active');
       setStatus('Building browser primitive...', 'running');
+      setHint('If the browser warns about memory, press OK.');
       arw.init();
       afterglow_check_arw();
+      markPhase('browser');
+      setHint('');
       setStep('webkit', 'done');
-      setBar(35);
 
       state.step = 'validate';
       setStep('validate', 'active');
       setStatus('Checking offsets and ROP...', 'running');
-      setBar(45);
       const base = afterglow_precheck_webkit_base();
       afterglow_validate_gadgets(base);
       const expected = afterglow_precheck_kernel_bases(base);
@@ -380,8 +454,6 @@
       if (!libc_base.eq(expected.libc)) throw new Error('libc base changed during rop.init()');
       if (!libkernel_base.eq(expected.libkernel)) throw new Error('libkernel base changed during rop.init()');
       afterglow_precheck_pivot();
-      setStep('validate', 'done');
-      setBar(60);
 
       setStatus('Checking ROP...', 'running');
       const pid = fn.getpid.invoke();
@@ -389,18 +461,12 @@
         throw new Error(`getpid returned an implausible value: ${pid}`);
       }
       logger.debug(`pid: ${pid}`);
+      markPhase('check');
+      setStep('validate', 'done');
 
       state.step = 'kernel';
       setStep('kernel', 'active');
       setStatus('Running kernel exploit...', 'running');
-      setBar(70);
-
-      // Warm the payload and patch set while the kernel stage runs. The
-      // server's no-cache still revalidates, but the body is already local.
-      const payload_choice = selectedPayload();
-      if (payload_choice === 'goldhen') prefetch('goldhen.bin');
-      else if (payload_choice === 'hen') prefetch('hen.bin');
-      prefetch('patchset-' + version.key.replace('.', '') + '.bin');
 
       await loadScript('../src/afterglow_bridge.js', 'module');
 
@@ -442,23 +508,21 @@
 
       state.done = true;
       stopTimer();
-      setTiming();
+      markPhase('kernel');
       setStep('kernel', 'done');
-      setBar(90);
 
       if (iface.payload) {
         const label = selectedPayload() === 'hen' ? 'ps4-hen' : 'GoldHEN';
         setStep('payload', 'done');
-        setBar(100);
         setStatus(`${label} started.`, 'done');
       } else {
         setStep('payload', 'skip');
-        setBar(100);
         setStatus('Kernel open; no payload selected.', 'done');
       }
 
       setIcon('done');
       setHeadline('Jailbroken', 'done');
+      setHint('');
       setButtons(['menu']);
       showLog(false);
       recordRun(true, '');
@@ -480,6 +544,7 @@
     setIcon('idle');
     setHeadline('Ready', '');
     setStatus('Press Start.', 'idle');
+    setHint('');
     setButtons(['start', 'fallback', 'menu']);
     resetSteps();
   }
@@ -517,11 +582,33 @@
       showDetails();
     });
 
+    const hideDetails = el('hide-details');
+    if (hideDetails) {
+      hideDetails.addEventListener('click', (event) => {
+        event.preventDefault();
+        showDetails(false);
+        const hero = document.querySelector('.hero');
+        if (hero) {
+          try {
+            hero.scrollIntoView({ block: 'start' });
+          } catch (err) {
+            hero.scrollIntoView(true);
+          }
+        }
+      });
+    }
+
     el('change-payload').addEventListener('click', (event) => {
       event.preventDefault();
       showDetails(true);
       const details = el('details');
-      if (details) details.scrollIntoView({ block: 'nearest' });
+      if (details) {
+        try {
+          details.scrollIntoView({ block: 'start' });
+        } catch (err) {
+          details.scrollIntoView(true);
+        }
+      }
     });
 
     for (const radio of document.querySelectorAll('input[name="payload"]')) {

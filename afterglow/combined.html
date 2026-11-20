@@ -91,10 +91,8 @@
         display: none;
         position: absolute;
         inset: -3px;
-        border: 3px solid var(--line);
-        border-top-color: var(--accent);
+        border: 3px solid #24425a;
         border-radius: 50%;
-        animation: spin 0.9s linear infinite;
       }
       .icon.running .ring {
         display: block;
@@ -107,6 +105,13 @@
       .icon.running .glyph.x,
       .icon.running .glyph.bang {
         display: none;
+      }
+      .icon.running .glyph.dots {
+        display: block;
+        font-size: 22px;
+        letter-spacing: 3px;
+        color: var(--accent);
+        padding-left: 3px;
       }
       .icon.idle .glyph.play {
         display: block;
@@ -136,11 +141,6 @@
       }
       .icon.warn .glyph.bang {
         display: block;
-      }
-      @keyframes spin {
-        to {
-          transform: rotate(360deg);
-        }
       }
       h1 {
         margin: 0 0 6px;
@@ -180,6 +180,12 @@
         margin-top: 4px;
         color: #5f6b79;
         font: 13px/1.2 var(--mono);
+      }
+      #hint {
+        min-height: 16px;
+        margin-top: 2px;
+        color: #5f6b79;
+        font-size: 12px;
       }
       .actions {
         display: flex;
@@ -243,10 +249,72 @@
       }
       #details {
         display: none;
-        margin-top: 22px;
-        padding-top: 20px;
-        border-top: 1px solid var(--line);
+      }
+      .details-card {
+        margin-top: 16px;
+        border: 1px solid var(--line);
+        background: linear-gradient(180deg, var(--panel2), var(--panel));
+        border-radius: 16px;
+        padding: 22px;
         text-align: left;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+      }
+      .details-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 10px;
+      }
+      .details-head h2 {
+        margin: 0;
+        font-size: 20px;
+        color: var(--bright);
+      }
+      .details-card h3 {
+        margin: 16px 0 8px;
+        color: var(--dim);
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+      .details-cols {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 22px;
+        margin-top: 4px;
+      }
+      .actions.left {
+        justify-content: flex-start;
+        margin-top: 16px;
+      }
+      .run-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 8px;
+        padding: 5px 0;
+        border-bottom: 1px solid #151d26;
+        font: 12px/1.4 var(--mono);
+        color: var(--dim);
+      }
+      .run-row b {
+        color: var(--fg);
+        font-weight: 600;
+      }
+      .run-row .ok {
+        color: var(--ok);
+      }
+      .run-row .bad {
+        color: var(--bad);
+      }
+      .run-row .run-split {
+        color: #5f6b79;
+        font-size: 11px;
+      }
+      .run-empty {
+        color: #5f6b79;
+        font: 12px/1.4 var(--mono);
       }
       .muted {
         color: var(--dim);
@@ -295,20 +363,6 @@
       .steps li.skip {
         opacity: 0.55;
       }
-      .bar {
-        height: 4px;
-        margin: 14px 0 18px;
-        background: #0a0e12;
-        border-radius: 999px;
-        overflow: hidden;
-      }
-      .bar i {
-        display: block;
-        height: 100%;
-        width: 0;
-        background: linear-gradient(90deg, #3a7fb0, #7fe0a8);
-        transition: width 0.35s ease;
-      }
       .payload {
         display: flex;
         flex-wrap: wrap;
@@ -342,7 +396,7 @@
         font-size: 13px;
       }
       #history {
-        margin-top: 10px;
+        margin-top: 0;
         min-height: 16px;
         color: #5f6b79;
         font: 12px/1.4 var(--mono);
@@ -398,6 +452,13 @@
         .steps {
           grid-template-columns: repeat(2, 1fr);
         }
+        .details-card {
+          padding: 16px;
+        }
+        .details-cols {
+          grid-template-columns: 1fr;
+          gap: 8px;
+        }
       }
     </style>
   </head>
@@ -411,6 +472,7 @@
       <section class="hero">
         <div id="icon" class="icon running">
           <div class="ring"></div>
+          <span class="glyph dots">&#8230;</span>
           <span class="glyph play">&#9654;</span>
           <span class="glyph check">&#10003;</span>
           <span class="glyph x">&#10005;</span>
@@ -420,6 +482,7 @@
         <h1 id="headline">Wobkot + Afterglow</h1>
         <div id="status">Starting...</div>
         <div id="timing"></div>
+        <div id="hint"></div>
 
         <div class="actions">
           <button id="start" class="btn primary" type="button" style="display: none">Start</button>
@@ -435,43 +498,55 @@
         </div>
 
         <div id="error"></div>
+      </section>
 
-        <div id="details">
-          <p class="muted">
-            PS4 14.00 - 14.02. Wobkot builds a read/write primitive in the browser
-            process; Afterglow runs the kernel exploit and starts a payload
-            (GoldHEN by default). Nothing is installed; reboot clears it.
-          </p>
-
-          <ol class="steps" id="progress">
-            <li id="step-webkit"><strong>1. Browser</strong>WebKit primitive</li>
-            <li id="step-validate"><strong>2. Check</strong>offsets + ROP</li>
-            <li id="step-kernel"><strong>3. Kernel</strong>Afterglow</li>
-            <li id="step-payload"><strong>4. Payload</strong>GoldHEN / ps4-hen</li>
-          </ol>
-
-          <div class="bar"><i id="bar"></i></div>
-
-          <div class="payload">
-            <span>Payload</span>
-            <label><input type="radio" name="payload" value="goldhen" checked /><span>GoldHEN</span></label>
-            <label><input type="radio" name="payload" value="hen" /><span>ps4-hen</span></label>
-            <label><input type="radio" name="payload" value="none" /><span>none</span></label>
-            <span class="payload-note">none = kernel open, no enabler</span>
-          </div>
-
-          <p class="note">
-            Close games and save first. This can crash or hang the console. One
-            kernel attempt per boot; reboot after a failure.
-          </p>
-
-          <div id="history"></div>
-
-          <div class="actions" style="justify-content: flex-start; margin-top: 14px">
-            <button id="toggle-log" class="btn ghost small" type="button">Show log</button>
-          </div>
-          <div id="log-wrap"><pre id="console"></pre></div>
+      <section id="details" class="details-card">
+        <div class="details-head">
+          <h2>Details</h2>
+          <button id="hide-details" class="btn ghost small" type="button">Hide</button>
         </div>
+
+        <p class="muted">
+          PS4 14.00 - 14.02. Wobkot builds a read/write primitive in the browser
+          process; Afterglow runs the kernel exploit and starts a payload
+          (GoldHEN by default). Nothing is installed; reboot clears it.
+        </p>
+
+        <ol class="steps" id="progress">
+          <li id="step-webkit"><strong>1. Browser</strong>WebKit primitive</li>
+          <li id="step-validate"><strong>2. Check</strong>offsets + ROP</li>
+          <li id="step-kernel"><strong>3. Kernel</strong>Afterglow</li>
+          <li id="step-payload"><strong>4. Payload</strong>GoldHEN / ps4-hen</li>
+        </ol>
+
+        <div class="details-cols">
+          <div>
+            <h3>Payload</h3>
+            <div class="payload">
+              <label><input type="radio" name="payload" value="goldhen" checked /><span>GoldHEN</span></label>
+              <label><input type="radio" name="payload" value="hen" /><span>ps4-hen</span></label>
+              <label><input type="radio" name="payload" value="none" /><span>none</span></label>
+            </div>
+            <div class="payload-note">none = kernel open, no enabler</div>
+          </div>
+          <div>
+            <h3>Recent runs</h3>
+            <div id="history"></div>
+          </div>
+        </div>
+
+        <p class="note">
+          Close games and save first. One kernel attempt per boot; reboot after a
+          failure. On 14.02 the browser can warn that it is out of system memory
+          during the browser stage — press OK and let it finish. That is the
+          WebKit spray reaching the browser's heap limit; reloading while it is
+          working is what breaks the run.
+        </p>
+
+        <div class="actions left">
+          <button id="toggle-log" class="btn ghost small" type="button">Show log</button>
+        </div>
+        <div id="log-wrap"><pre id="console"></pre></div>
       </section>
 
       <div class="stack">Wobkot browser primitive &middot; Afterglow kernel exploit &middot; GoldHEN payload</div>
@@ -487,6 +562,6 @@
       </div>
     </div>
 
-    <script src="../src/combined.js?v=13" defer></script>
+    <script src="../src/combined.js?v=16" defer></script>
   </body>
 </html>
