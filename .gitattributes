@@ -5,3 +5,4 @@
 *.bin binary
 *.png binary
 *.pem binary
+*.cmd text eol=crlf

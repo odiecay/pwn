@@ -29,8 +29,8 @@ PS5                 Wobkot PS5 chain (upstream support)
    py host.py
    ```
 
-   The server prints the URL(s) to open, for example
-   `http://192.168.1.50:8000/`.
+   On Windows you can also double-click `start.cmd`. The server prints the
+   URL(s) to open, for example `http://192.168.1.50:8000/`.
 3. On the console, open the browser and go to that URL.
 4. The hub detects the console and firmware. On 14.02 the recommended action is
    **Start fast path (GoldHEN)**. It counts down, then runs.
