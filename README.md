@@ -108,6 +108,16 @@ fetched at the end instead of overlapping the kernel. A 3.7 s run used a
 rewritten ARW spray that was not stable across attempts; that rewrite has been
 reverted. The remaining time is Afterglow's kernel exploit.
 
+Advanced: open the root with `?spray=fast` (for example
+`http://<host>:8000/?spray=fast`) to use the vectorised ARW fill (native
+`TypedArray.set` instead of the per-pair JS loop). The stable loop is still the
+default; the hub passes the flag through to the combined page. The run log
+records `spray=fast` or `spray=original`, so a few cold-boot runs on hardware
+can settle whether the fast fill is reliable before it becomes the default. The
+pattern buffer is allocated at script load, outside the critical `fakeobj`
+window. This path is still experimental: the ARW is timing-sensitive, so keep
+the stable default unless you are collecting a hardware record.
+
 On 14.02 the browser can show **"there is not enough free system memory"**
 during the browser stage. This is Wobkot's spray reaching the browser's heap
 limit; press **OK**. The browser may reload the page and start again; let it.

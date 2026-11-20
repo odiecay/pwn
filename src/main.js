@@ -7,7 +7,7 @@
 function load_script(src) {
   return new Promise((resolve, reject) => {
     const script = document.createElement('script');
-    script.src = src + (src.indexOf('?') === -1 ? '?' : '&') + 'v=23';
+    script.src = src + (src.indexOf('?') === -1 ? '?' : '&') + 'v=24';
     script.onload = resolve;
     script.onerror = () => {
       reject(new Error(`Failed to load script: ${src}`));

