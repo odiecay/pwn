@@ -12,7 +12,7 @@
   const HISTORY_KEY = 'wobkot.fast.history';
   const ATTEMPT_KEY = 'wobkot.fast.kernelAttempted';
   const ALREADY_KEY = 'wobkot.fast.alreadyJailbroken';
-  const BUILD = '18';
+  const BUILD = '19';
 
   const state = {
     busy: false,
@@ -92,7 +92,7 @@
   }
 
   function setButtons(visible) {
-    for (const id of ['start', 'retry', 'fallback', 'menu']) {
+    for (const id of ['start', 'retry', 'fallback', 'run-anyway', 'menu']) {
       const node = el(id);
       if (!node) continue;
       node.style.display = visible.indexOf(id) !== -1 ? '' : 'none';
@@ -346,9 +346,9 @@
     setIcon('done');
     setHeadline('Already jailbroken', 'done');
     setStatus('This console is already jailbroken on this boot. Reboot before another run.', 'done');
-    setHint('');
+    setHint('Use Run anyway only if you have rebooted the console.');
     setError('');
-    setButtons(['menu']);
+    setButtons(['run-anyway', 'menu']);
     for (const name of ['webkit', 'validate', 'kernel', 'payload']) setStep(name, 'done');
   }
 
@@ -614,6 +614,22 @@
       event.preventDefault();
       if (safeToLeave()) location.reload();
     });
+
+    const runAnyway = el('run-anyway');
+    if (runAnyway) {
+      runAnyway.addEventListener('click', (event) => {
+        event.preventDefault();
+        try {
+          sessionStorage.removeItem(ALREADY_KEY);
+          sessionStorage.removeItem(ATTEMPT_KEY);
+        } catch (err) {
+          // ignore
+        }
+        state.done = false;
+        state.busy = false;
+        run();
+      });
+    }
 
     el('toggle-log').addEventListener('click', (event) => {
       event.preventDefault();

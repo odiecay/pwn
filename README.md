@@ -40,8 +40,8 @@ PS5                 Wobkot PS5 chain (upstream support)
 
 ![Diagnostics](screenshots/diagnostics.png)
 
-The running and success images are the same page at 1280x720; the success
-image shows the UI state, not a hardware capture.
+The state images are the same page at 1280x720; they show the UI states, not
+hardware captures.
 
 ## UI references
 
