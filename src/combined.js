@@ -12,7 +12,7 @@
   const HISTORY_KEY = 'wobkot.fast.history';
   const ATTEMPT_KEY = 'wobkot.fast.kernelAttempted';
   const ALREADY_KEY = 'wobkot.fast.alreadyJailbroken';
-  const BUILD = '24';
+  const BUILD = '26';
 
   const state = {
     busy: false,
@@ -284,10 +284,10 @@
       split.textContent = entry.note === 'already jailbroken' ? 'already jailbroken' : phaseText(entry);
       if (split.textContent) row.appendChild(split);
 
-      if (entry.spray === 'fast') {
+      if (entry.spray === 'original') {
         const spray = document.createElement('span');
         spray.className = 'run-split';
-        spray.textContent = 'fast spray';
+        spray.textContent = 'stable spray';
         row.appendChild(spray);
       }
 
@@ -460,7 +460,8 @@
       await loadScript('../src/strategy.js');
       await loadScript('../src/misc.js');
       await loadScript('../src/ps4/impl.js');
-      globalThis.WOBKOT_FAST_SPRAY = query().get('spray') === 'fast';
+      const sprayMode = query().get('spray');
+      globalThis.WOBKOT_FAST_SPRAY = sprayMode !== 'original' && sprayMode !== 'stable';
       await loadScript('../src/userland.js');
       await loadScript('../src/afterglow_host.js');
       markPhase('load');

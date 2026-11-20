@@ -101,22 +101,20 @@ console before another attempt; this is what keeps a failed attempt from
 compounding into a crash. The only exception is an advanced `?force=1`, which
 you should not need.
 
-Confirmed on a retail PS4 14.02: about **4.5 s** with no memory prompt, and
-about **5.5 s** with one prompt, because the run timer counts the pause while
-the dialog waits for **OK**. A 7-8 s run is what happens when the payload is
-fetched at the end instead of overlapping the kernel. A 3.7 s run used a
-rewritten ARW spray that was not stable across attempts; that rewrite has been
-reverted. The remaining time is Afterglow's kernel exploit.
+Confirmed on a retail PS4 14.02: about **4.5 s** with the original ARW loop and
+a **3.7 s** run with the vectorised fill. A memory prompt adds about a second
+(**5.5 s**) because the timer counts the pause while the dialog waits for
+**OK**. A 7-8 s run is what happens when the payload is fetched at the end
+instead of overlapping the kernel. The remaining time is Afterglow's kernel
+exploit.
 
-Advanced: open the root with `?spray=fast` (for example
-`http://<host>:8000/?spray=fast`) to use the vectorised ARW fill (native
-`TypedArray.set` instead of the per-pair JS loop). The stable loop is still the
-default; the hub passes the flag through to the combined page. The run log
-records `spray=fast` or `spray=original`, so a few cold-boot runs on hardware
-can settle whether the fast fill is reliable before it becomes the default. The
-pattern buffer is allocated at script load, outside the critical `fakeobj`
-window. This path is still experimental: the ARW is timing-sensitive, so keep
-the stable default unless you are collecting a hardware record.
+The vectorised ARW fill is now the default on 14.x: native `TypedArray.set`
+instead of the per-pair JS loop. The 16 KiB pattern buffer is allocated at
+script load, before the 4 MiB spray buffers, outside the critical `fakeobj`
+window. The old loop is still available at `?spray=original` (or
+`?spray=stable`), and the run log records `spray=fast` or `spray=original`.
+If a particular console shows instability with the fast fill, use the opt-out;
+the bytes written are identical.
 
 On 14.02 the browser can show **"there is not enough free system memory"**
 during the browser stage. This is Wobkot's spray reaching the browser's heap

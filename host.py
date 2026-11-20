@@ -98,12 +98,12 @@ class Handler(SimpleHTTPRequestHandler):
         major = int(match.group(2))
         minor = int(match.group(3), 16)
         debug = query.get("debug", ["0"])[0] == "1"
-        fast_spray = query.get("spray", [""])[0] == "fast"
+        spray = query.get("spray", [""])[0]
 
         if console == 4 and major == 14 and minor in (0, 2):
             suffix = "&debug=1" if debug else ""
-            if fast_spray:
-                suffix += "&spray=fast"
+            if spray in ("fast", "original", "stable"):
+                suffix += f"&spray={spray}"
             return f"/afterglow/combined.html?run=1{suffix}&v={int(time.time())}"
 
         if console == 4 and 12 <= major <= 13:
