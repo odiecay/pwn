@@ -39,9 +39,9 @@ PS5                 Wobkot PS5 chain (upstream support)
    first, open **Primitive self-test** from the hub; it does not touch the
    kernel.
 
-If the fast path stops before touching the kernel, use **Proven Afterglow**.
-If the log says the handles are **NOT defused**, do not close the page; cold
-boot the console.
+If the fast path stops at validation, close and reopen the browser before
+retrying, or use **Proven Afterglow**. If the log says the handles are
+**NOT defused**, do not close the page; cold boot the console.
 
 ## What the fast path does
 
@@ -162,7 +162,8 @@ engine no longer matches upstream; rerun `py tools/update_afterglow.py
 
 - `primitive-test.html` builds only the WebKit primitive, validates gadgets and
   bases, and calls `getpid()`. It does not write the kernel. Run it on 14.02 to
-  prove the fast path's browser stage.
+  prove the fast path's browser stage. It grooms the WebKit heap, so close the
+  browser and reopen it before running the real chain.
 - `diag.html` fetches every required file and shows status, MIME type, size and
   `Cache-Control`. A 404 or `text/plain` for a `.js` file is a server problem.
 

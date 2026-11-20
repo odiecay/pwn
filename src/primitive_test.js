@@ -102,7 +102,7 @@
       logger.info(`elapsed: ${elapsed} ms`);
       logger.info('===PASS===');
 
-      setStatus(`PASS - primitive ready in ${elapsed} ms. Reload before another run.`, 'done');
+      setStatus(`PASS - primitive ready in ${elapsed} ms. Close and reopen the browser before the real chain.`, 'done');
       state.done = true;
     } catch (err) {
       const message = err && err.message ? err.message : String(err);

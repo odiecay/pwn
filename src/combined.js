@@ -257,7 +257,7 @@
         setButtons(['back']);
       } else {
         setStatus(
-          'Fast path stopped before touching the kernel. Retry, or use the proven Afterglow engine.',
+          'Fast path stopped before touching the kernel. Close and reopen the browser, or use the proven Afterglow engine.',
           'fail',
         );
         setButtons(['retry', 'fallback', 'back']);
