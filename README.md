@@ -1,5 +1,8 @@
 # PS4 WebKit Toolkit - Wobkot + Afterglow
 
+Live copy: **https://odiecay.github.io/pwn/**  
+Source: **https://github.com/odiecay/pwn**
+
 A self-hosted browser toolkit for PS4 firmware **9.00 - 14.02** and PS5 (as
 provided by Wobkot).
 
