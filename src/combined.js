@@ -11,7 +11,8 @@
   const PAYLOAD_KEY = 'wobkot.fast.payload';
   const HISTORY_KEY = 'wobkot.fast.history';
   const ATTEMPT_KEY = 'wobkot.fast.kernelAttempted';
-  const BUILD = '16';
+  const ALREADY_KEY = 'wobkot.fast.alreadyJailbroken';
+  const BUILD = '18';
 
   const state = {
     busy: false,
@@ -22,6 +23,7 @@
     fw: '',
     phases: {},
     lastPhase: 0,
+    alreadyJailbroken: false,
     kernelTouched: false,
     unsafe: false,
     ctx: null,
@@ -265,7 +267,7 @@
 
       const split = document.createElement('span');
       split.className = 'run-split';
-      split.textContent = phaseText(entry);
+      split.textContent = entry.note === 'already jailbroken' ? 'already jailbroken' : phaseText(entry);
       if (split.textContent) row.appendChild(split);
 
       node.appendChild(row);
@@ -322,6 +324,32 @@
     } catch (err) {
       // ignore
     }
+  }
+
+  function alreadyJailbroken() {
+    try {
+      return sessionStorage.getItem(ALREADY_KEY) === '1';
+    } catch (err) {
+      return false;
+    }
+  }
+
+  function markAlreadyJailbroken() {
+    try {
+      sessionStorage.setItem(ALREADY_KEY, '1');
+    } catch (err) {
+      // ignore
+    }
+  }
+
+  function showAlreadyJailbroken() {
+    setIcon('done');
+    setHeadline('Already jailbroken', 'done');
+    setStatus('This console is already jailbroken on this boot. Reboot before another run.', 'done');
+    setHint('');
+    setError('');
+    setButtons(['menu']);
+    for (const name of ['webkit', 'validate', 'kernel', 'payload']) setStep(name, 'done');
   }
 
   function buildParams() {
@@ -386,6 +414,7 @@
     state.busy = true;
     state.kernelTouched = false;
     state.unsafe = false;
+    state.alreadyJailbroken = false;
     state.ctx = null;
     setError('');
     showDetails(false);
@@ -481,7 +510,10 @@
         afterglow_mark(tag, detail);
 
         const text = String(detail == null ? '' : detail);
-        if (text.indexOf('[1] leak') !== -1) setStatus('Leaking kernel base...', 'running');
+        if (text.indexOf('kernel is already open') !== -1) {
+          state.alreadyJailbroken = true;
+          setStatus('Kernel is already open.', 'running');
+        } else if (text.indexOf('[1] leak') !== -1) setStatus('Leaking kernel base...', 'running');
         else if (text.indexOf('[4] mapping') !== -1) setStatus('Walking kernel mappings...', 'running');
         else if (text.indexOf('[5] widen') !== -1) setStatus('Patching kernel text...', 'running');
         else if (text.indexOf('[6] kernel patched') !== -1) setStatus('Kernel patched. Escaping sandbox...', 'running');
@@ -496,7 +528,17 @@
 
       markKernelAttempted();
       const iface = await Afterglow.runAfterglow(state.ctx, { tries: 4 });
-      if (!iface) throw new Error('Afterglow did not return a kernel interface');
+      if (!iface) {
+        if (state.alreadyJailbroken) {
+          state.done = true;
+          stopTimer();
+          markAlreadyJailbroken();
+          showAlreadyJailbroken();
+          recordRun(true, 'already jailbroken');
+          return;
+        }
+        throw new Error('Afterglow did not return a kernel interface');
+      }
 
       state.kernelTouched = state.kernelTouched || state.ctx.kernel_touched;
       state.unsafe = state.ctx.unsafe === true || iface.defused === false;
@@ -525,6 +567,7 @@
       setHint('');
       setButtons(['menu']);
       showLog(false);
+      markAlreadyJailbroken();
       recordRun(true, '');
       globalThis.afterglow_iface = iface;
     } catch (err) {
@@ -622,6 +665,11 @@
     showLog(false);
     updatePayloadSummary();
     renderHistory();
+
+    if (alreadyJailbroken() && params.get('force') !== '1') {
+      showAlreadyJailbroken();
+      return;
+    }
 
     if (kernelAttempted() && params.get('force') !== '1') {
       setIcon('warn');

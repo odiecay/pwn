@@ -30,6 +30,10 @@ PS5                 Wobkot PS5 chain (upstream support)
 
 ![Jailbroken](screenshots/run-success.png)
 
+![Already jailbroken](screenshots/run-already.png)
+
+![Stopped](screenshots/run-fail.png)
+
 ![Details](screenshots/run-details.png)
 
 ![Self-test](screenshots/self-test.png)
@@ -117,7 +121,9 @@ The run page records the last attempts locally and `host.py` prints one
 `load=... browser=... check=... kernel=...`, which shows where the time went.
 The same line is appended to `host.log` when the server is running. The page
 also allows only one kernel attempt per browser session: after an attempt it
-shows **Reboot required** instead of firing again.
+shows **Reboot required** instead of firing again. If the kernel is already
+open, Afterglow's rwx probe stops the chain and the page shows **Already
+jailbroken** with the reboot instruction, not a red failure.
 
 If the chain stops at validation, close and reopen the browser before
 retrying, or use **Afterglow**. If the log says the handles are
@@ -263,6 +269,7 @@ engine no longer matches upstream; rerun `py tools/update_afterglow.py
 | 404 on a page | `host.py` was started from the wrong directory, or the URL is missing a path. The server serves this folder, not its parent. |
 | `No offsets for this firmware` | Afterglow has no exact table for that firmware. Do not force it; wait for an upstream table or use a supported firmware. |
 | chain stops at validation | The WebKit offsets did not match. Use **Afterglow**; the kernel was not touched. |
+| Already jailbroken | The rwx probe found an open kernel from an earlier success on this boot. Reboot before another run. |
 | Page keeps an old build | The server already sends no-cache. Reopen the page; if needed, clear the browser cache. |
 | Port 8000 in use | `py host.py --port 8080` |
 | Console cannot reach the PC | Allow Python through Windows Firewall on the private network; both devices must be on the same LAN. |

@@ -115,8 +115,12 @@
       }
       .icon.idle .glyph.play {
         display: block;
-        font-size: 36px;
-        color: var(--dim);
+        width: 0;
+        height: 0;
+        margin-left: 5px;
+        border-left: 20px solid var(--dim);
+        border-top: 13px solid transparent;
+        border-bottom: 13px solid transparent;
       }
       .icon.done {
         border-color: #2f6b4d;
@@ -125,6 +129,12 @@
       }
       .icon.done .glyph.check {
         display: block;
+        width: 27px;
+        height: 13px;
+        margin-top: -9px;
+        border-left: 5px solid var(--ok);
+        border-bottom: 5px solid var(--ok);
+        transform: rotate(-45deg);
       }
       .icon.fail {
         border-color: #6a2f2f;
@@ -133,6 +143,26 @@
       }
       .icon.fail .glyph.x {
         display: block;
+        position: relative;
+        width: 34px;
+        height: 34px;
+      }
+      .icon.fail .glyph.x::before,
+      .icon.fail .glyph.x::after {
+        content: '';
+        position: absolute;
+        top: 15px;
+        left: 0;
+        width: 34px;
+        height: 5px;
+        border-radius: 3px;
+        background: var(--bad);
+      }
+      .icon.fail .glyph.x::before {
+        transform: rotate(45deg);
+      }
+      .icon.fail .glyph.x::after {
+        transform: rotate(-45deg);
       }
       .icon.warn {
         border-color: #6a5a2f;
@@ -472,10 +502,10 @@
       <section class="hero">
         <div id="icon" class="icon running">
           <div class="ring"></div>
-          <span class="glyph dots">&#8230;</span>
-          <span class="glyph play">&#9654;</span>
-          <span class="glyph check">&#10003;</span>
-          <span class="glyph x">&#10005;</span>
+          <span class="glyph dots">...</span>
+          <span class="glyph play"></span>
+          <span class="glyph check"></span>
+          <span class="glyph x"></span>
           <span class="glyph bang">!</span>
         </div>
 
@@ -562,6 +592,6 @@
       </div>
     </div>
 
-    <script src="../src/combined.js?v=16" defer></script>
+    <script src="../src/combined.js?v=18" defer></script>
   </body>
 </html>
