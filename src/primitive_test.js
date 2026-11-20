@@ -36,7 +36,7 @@
 
     state.busy = true;
     el('start').disabled = true;
-    setStatus('Loading...', 'running');
+    setStatus('Running...', 'running');
 
     try {
       await loadScript('src/logger.js');
@@ -50,7 +50,7 @@
       const route = routeFor(version.console, version.major, version.minor);
       if (!route.supported) throw new Error(route.reason || 'Unsupported console');
 
-      logger.info('===PRIMITIVE SELF-TEST===');
+      logger.info('===WOBAKOT SELF-TEST===');
       logger.info(`console ${version.console}, firmware ${version.key}`);
 
       if (version.console === 4) await loadScript('src/ps4/impl.js');
@@ -105,13 +105,13 @@
       logger.info(`elapsed: ${elapsed} ms`);
       logger.info('===PASS===');
 
-      setStatus(`PASS - primitive ready in ${elapsed} ms. Close and reopen the browser before the real chain.`, 'done');
+      setStatus(`PASS - primitive ready in ${elapsed} ms. Close and reopen the browser.`, 'done');
       state.done = true;
     } catch (err) {
       const message = err && err.message ? err.message : String(err);
       logger.error(message);
       if (err && err.stack) logger.error(err.stack);
-      setStatus('FAIL - this firmware did not validate. Check the log and use the recommended engine.', 'fail');
+      setStatus('FAIL - primitive did not validate. See the log.', 'fail');
     } finally {
       state.busy = false;
       el('start').disabled = false;

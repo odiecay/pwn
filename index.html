@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>PS4 WebKit Toolkit</title>
+    <title>PS4 WebKit exploit host</title>
     <style>
       :root {
         --bg: #0a0c0f;
@@ -86,6 +86,11 @@
         margin: 10px 0 14px;
         max-width: 72ch;
         color: var(--fg);
+      }
+      .note {
+        margin: 6px 0 14px;
+        color: var(--warn);
+        font-size: 13px;
       }
       .why {
         color: var(--dim);
@@ -196,31 +201,32 @@
         <div class="detected" id="firmware"></div>
         <p class="plain">
           Wobkot gets read/write in the PS4 browser process. Afterglow uses it to
-          run the kernel exploit and load GoldHEN. Nothing is installed; reboot
-          clears it.
+          run the kernel exploit and start a payload (GoldHEN by default). Nothing
+          is installed; reboot clears it.
+        </p>
+        <p class="note">
+          Kernel exploit. Close games and save first. Reboot after a failure.
         </p>
         <div class="why" id="why"></div>
         <div class="actions" id="actions"></div>
-        <div class="hint" id="hint"></div>
-        <div class="mono" id="ua" style="margin-top: 14px"></div>
       </section>
 
       <section class="panel">
-        <h2>Routing</h2>
+        <h2>Firmware</h2>
         <table>
           <thead>
             <tr>
               <th>Console</th>
               <th>Firmware</th>
-              <th>Recommended</th>
-              <th>Also</th>
+              <th>Chain</th>
+              <th>Other</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td>PS4</td>
               <td><code>9.00 - 11.52</code></td>
-              <td>Wobkot legacy</td>
+              <td>Wobkot + Lapse</td>
               <td>Self-test</td>
             </tr>
             <tr>
@@ -232,20 +238,20 @@
             <tr>
               <td>PS4</td>
               <td><code>14.00 - 14.02</code></td>
-              <td>Wobkot x Afterglow fast path</td>
-              <td>Proven Afterglow</td>
+              <td>Wobkot + Afterglow</td>
+              <td>Afterglow</td>
             </tr>
             <tr>
               <td>PS5</td>
               <td>as provided</td>
-              <td>Wobkot PS5</td>
+              <td>Wobkot</td>
               <td>Self-test</td>
             </tr>
           </tbody>
         </table>
         <div class="hint">
-          On PS4 14.x this page redirects straight to the fast path. Add
-          <code>?menu=1</code> to see this menu instead.
+          On PS4 14.x the root URL runs the chain automatically. Add
+          <code>?menu=1</code> to keep this page.
         </div>
       </section>
 
@@ -254,12 +260,12 @@
         <span>
           <a href="primitive-test.html">self-test</a>
           &nbsp; <a href="diag.html">diagnostics</a>
-          &nbsp; <a href="afterglow/index.html">proven engine</a>
+          &nbsp; <a href="afterglow/index.html">Afterglow</a>
         </span>
       </div>
     </div>
 
-    <script src="src/strategy.js?v=4"></script>
+    <script src="src/strategy.js?v=8"></script>
     <script>
       (function () {
         var params = new URLSearchParams(location.search);
@@ -268,12 +274,11 @@
         var firmware = document.getElementById('firmware');
         var why = document.getElementById('why');
         var actions = document.getElementById('actions');
-        var hint = document.getElementById('hint');
 
         if (typeof parsePlayStationUA !== 'function' || typeof routeFor !== 'function') {
-          detected.textContent = 'src/strategy.js failed to load';
+          detected.textContent = 'strategy.js failed to load';
           why.className = 'why bad';
-          why.textContent = 'Check that host.py is serving this folder and that src/strategy.js is present.';
+          why.textContent = 'Check the server and src/strategy.js.';
           return;
         }
 
@@ -297,20 +302,19 @@
           detected.textContent = 'Open this on the console';
           why.textContent =
             'This page routes by the PlayStation user agent. On a desktop use ?console=4&fw=14.02 to preview.';
-          add('Wobkot legacy', 'legacy.html', 'small');
-          add('Proven Afterglow', 'afterglow/index.html', 'small');
-          add('Fast path options', 'afterglow/combined.html?menu=1', 'small');
+          add('Wobkot', 'legacy.html', 'small');
+          add('Afterglow', 'afterglow/index.html', 'small');
+          add('Wobkot + Afterglow options', 'afterglow/combined.html?menu=1', 'small');
           return;
         }
 
         detected.textContent = 'PlayStation ' + ps.console;
         firmware.textContent = 'firmware ' + versionKey(ps.major, ps.minor);
-        document.getElementById('ua').textContent = ua;
 
         if (!route || !route.supported) {
           why.className = 'why bad';
           why.textContent = route && route.reason ? route.reason : 'Unsupported console.';
-          add('Primitive self-test', 'primitive-test.html', 'small');
+          add('Self-test', 'primitive-test.html', 'small');
           add('Diagnostics', 'diag.html', 'small');
           return;
         }
@@ -330,22 +334,20 @@
         why.textContent = route.note;
 
         if (route.engine === 'combined') {
-          add('Start fast path', 'afterglow/combined.html?run=1', 'primary');
-          add('Fast path options', 'afterglow/combined.html?menu=1', 'secondary');
-          add('Proven Afterglow', 'afterglow/index.html', 'small');
-          add('Primitive self-test', 'primitive-test.html', 'small');
+          add('Start Wobkot + Afterglow', 'afterglow/combined.html?run=1', 'primary');
+          add('Choose payload', 'afterglow/combined.html?menu=1', 'secondary');
+          add('Afterglow instead', 'afterglow/index.html', 'small');
+          add('Self-test', 'primitive-test.html', 'small');
           add('Diagnostics', 'diag.html', 'small');
         } else if (route.engine === 'afterglow') {
           add('Start Afterglow', route.path, 'primary');
-          add('Primitive self-test', 'primitive-test.html', 'small');
+          add('Self-test', 'primitive-test.html', 'small');
           add('Diagnostics', 'diag.html', 'small');
         } else {
           add('Start Wobkot', route.path, 'primary');
-          add('Primitive self-test', 'primitive-test.html', 'small');
+          add('Self-test', 'primitive-test.html', 'small');
           add('Diagnostics', 'diag.html', 'small');
         }
-
-        hint.textContent = 'Menu mode. Remove ?menu=1 to go straight to the recommended engine.';
 
         function add(label, href, cls) {
           var a = document.createElement('a');

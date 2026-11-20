@@ -4,13 +4,13 @@ A self-hosted browser toolkit for PS4 firmware **9.00 - 14.02** and PS5 (as
 provided by Wobkot).
 
 The 14.02 path is the point of this build: it combines **Wobkot's WebKit
-primitive** with **Afterglow's kernel exploit**. The fast path validates every
+primitive** with **Afterglow's kernel exploit**. The chain validates every
 WebKit address before the first ROP call, then hands the process to Afterglow
 for the kernel stage and payload loader. If validation fails, nothing in the
-kernel has been touched and the page offers the proven Afterglow chain.
+kernel has been touched and the page offers the Afterglow chain.
 
 ```text
-PS4 14.00 - 14.02   Wobkot primitive + Afterglow kernel   (fast path, primary)
+PS4 14.00 - 14.02   Wobkot primitive + Afterglow kernel   (chain, primary)
                     Afterglow full chain                   (proven fallback)
 PS4 12.00 - 13.52   Afterglow full chain
 PS4 9.00 - 11.52    Wobkot legacy (Lapse kernel)
@@ -23,7 +23,7 @@ PS5                 Wobkot PS5 chain (upstream support)
   (`src/strategy.js`). The original console page is now `legacy.html`.
 - Vendored Afterglow under `afterglow/` for PS4 12.00-14.02, with its own
   `cache.appcache`, payloads and patch sets.
-- Added the fast path (`afterglow/combined.html` + `src/combined.js`) that
+- Added the chain (`afterglow/combined.html` + `src/combined.js`) that
   runs Wobkot's WebKit primitive and Afterglow's kernel stage. It starts
   immediately from the root URL, shows four progress stages, hides the full log
   behind a toggle, and falls back to the proven engine on a safe miss.
@@ -50,17 +50,17 @@ PS5                 Wobkot PS5 chain (upstream support)
    URL(s) to open, for example `http://192.168.1.50:8000/`.
 3. On the console, open the browser and go to that URL.
 4. The hub detects the console and, on PS4 14.x, redirects straight to the fast
-   path. There is no countdown: the fast path starts immediately.
+   path. There is no countdown: the chain starts immediately.
 5. GoldHEN is the default payload and the choice is remembered in
    `localStorage`. To pick ps4-hen or no payload, open `?menu=1` on the hub,
-   then **Fast path options**.
+   then **Choose payload**.
 
 After a kernel attempt, the run page shows **Reboot required**. Cold boot the
 console before another attempt; this is what keeps a failed attempt from
 compounding into a crash. The only exception is an advanced `?force=1`, which
 you should not need.
 
-Confirmed on a retail PS4 14.02: the stable fast path completed in **4.0 s**
+Confirmed on a retail PS4 14.02: the stable chain completed in **4.0 s**
 with the original Wobkot ARW loop, the bulk payload copy and prefetch. A 3.7 s
 run used a rewritten ARW spray that was not stable across attempts; that rewrite
 has been reverted. The remaining time is Afterglow's kernel exploit.
@@ -70,8 +70,8 @@ The run page records the last attempts locally and `host.py` prints one
 kernel attempt per browser session: after an attempt it shows **Reboot
 required** instead of firing again.
 
-If the fast path stops at validation, close and reopen the browser before
-retrying, or use **Proven Afterglow**. If the log says the handles are
+If the chain stops at validation, close and reopen the browser before
+retrying, or use **Afterglow**. If the log says the handles are
 **NOT defused**, do not close the page; cold boot the console.
 
 ## Hosting on GitHub Pages
@@ -96,7 +96,7 @@ failures. The root link and the combined script use cache-busting query strings
 so the console does not keep serving an old page. If you land on an old tab
 after an update, go to the repository root URL rather than reusing the tab.
 
-## What the fast path does
+## What the chain does
 
 1. Loads the shared logger first, then loads the routing table, Wobkot's
    `misc.js`/`ps4/impl.js`/`userland.js`, the adapter and the Afterglow module
@@ -116,7 +116,7 @@ after an update, go to the repository root URL rather than reusing the tab.
 
 No kernel address is written until steps 3-6 pass. A failed validation is a
 normal page error, not a kernel crash. The main remaining risk is the WebKit
-ROP pivot itself; that is why the proven Afterglow chain remains one tap away.
+ROP pivot itself; that is why the Afterglow chain remains one tap away.
 
 ## Files
 
@@ -128,9 +128,9 @@ diag.html                   file/server diagnostics
 start.cmd                   Windows: start the host
 check.cmd                   Windows: run the static checks
 afterglow/                  vendored Afterglow engine, unmodified
-afterglow/combined.html     fast path UI
+afterglow/combined.html     chain UI
 src/strategy.js             one firmware -> engine routing table
-src/combined.js             fast path loader
+src/combined.js             chain loader
 src/afterglow_host.js       Wobkot -> Afterglow adapter + validation
 src/afterglow_bridge.js     ES-module bridge
 src/afterglow_fast.js       generated fast module (bulk payload copy)
@@ -211,7 +211,7 @@ engine no longer matches upstream; rerun `py tools/update_afterglow.py
 | --- | --- |
 | 404 on a page | `host.py` was started from the wrong directory, or the URL is missing a path. The server serves this folder, not its parent. |
 | `No offsets for this firmware` | Afterglow has no exact table for that firmware. Do not force it; wait for an upstream table or use a supported firmware. |
-| Fast path stops at validation | The WebKit offsets did not match. Use **Proven Afterglow**; the kernel was not touched. |
+| chain stops at validation | The WebKit offsets did not match. Use **Afterglow**; the kernel was not touched. |
 | Page keeps an old build | The server already sends no-cache. Reopen the page; if needed, clear the browser cache. |
 | Port 8000 in use | `py host.py --port 8080` |
 | Console cannot reach the PC | Allow Python through Windows Firewall on the private network; both devices must be on the same LAN. |
@@ -224,7 +224,7 @@ engine no longer matches upstream; rerun `py tools/update_afterglow.py
 
 - `primitive-test.html` builds only the WebKit primitive, validates gadgets and
   bases, and calls `getpid()`. It does not write the kernel. Run it on 14.02 to
-  prove the fast path's browser stage. It grooms the WebKit heap, so close the
+  prove the chain's browser stage. It grooms the WebKit heap, so close the
   browser and reopen it before running the real chain.
 - `diag.html` fetches every required file and shows status, MIME type, size and
   `Cache-Control`. A 404 or `text/plain` for a `.js` file is a server problem.

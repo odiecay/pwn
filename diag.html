@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Diagnostics - PS4 WebKit Toolkit</title>
+    <title>Diagnostics - PS4 WebKit exploit host</title>
     <style>
       :root {
         --bg: #0b0d10;
@@ -115,10 +115,13 @@
     <div class="wrap">
       <div class="panel">
         <h1>Diagnostics</h1>
+        <p class="mono">
+          Checks the console, firmware route, and every file the page needs.
+        </p>
         <div id="summary" class="mono">Checking...</div>
         <div class="row">
-          <a class="btn" href="index.html">hub</a>
-          <button id="recheck" class="btn" type="button">re-check</button>
+          <a class="btn" href="index.html?menu=1">Menu</a>
+          <button id="recheck" class="btn" type="button">Check again</button>
         </div>
       </div>
 
@@ -156,7 +159,7 @@
       </div>
     </div>
 
-    <script src="src/strategy.js"></script>
-    <script src="src/diag.js" defer></script>
+    <script src="src/strategy.js?v=8"></script>
+    <script src="src/diag.js?v=8" defer></script>
   </body>
 </html>

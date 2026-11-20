@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
-    <title>Wobkot x Afterglow</title>
+    <title>Wobkot + Afterglow - PS4 14.02</title>
     <style>
       :root {
         --bg: #0a0c0f;
@@ -232,6 +232,15 @@
         width: 15px;
         height: 15px;
       }
+      .payload-note {
+        color: #5f6b79;
+        font-size: 12px;
+      }
+      .note {
+        margin: 10px 0 0;
+        color: var(--warn);
+        font-size: 13px;
+      }
       #error {
         display: none;
         margin-top: 16px;
@@ -294,25 +303,24 @@
   <body>
     <div class="wrap">
       <div class="top">
-        <div class="brand">WOBKOT <span>x</span> AFTERGLOW</div>
+        <div class="brand">WOBKOT <span>+</span> AFTERGLOW</div>
         <div class="badge" id="fw">PS4</div>
       </div>
 
       <section class="hero">
         <h1 id="headline">Wobkot + Afterglow</h1>
-        <div id="status">Loading...</div>
+        <div id="status">Starting...</div>
         <p class="muted" style="margin-top: 10px; max-width: 70ch">
           PS4 14.00 - 14.02. Wobkot builds a read/write primitive in the browser
-          process; Afterglow runs the kernel exploit and starts GoldHEN. Nothing
-          is installed; reboot clears it. The proven Afterglow chain is the
-          fallback if this stops before the kernel.
+          process; Afterglow runs the kernel exploit and starts a payload
+          (GoldHEN by default). Nothing is installed; reboot clears it.
         </p>
 
         <ol class="steps" id="progress">
-          <li id="step-webkit"><strong>1. WebKit</strong>build primitive</li>
-          <li id="step-validate"><strong>2. Validate</strong>offsets + ROP</li>
-          <li id="step-kernel"><strong>3. Kernel</strong>Afterglow stage</li>
-          <li id="step-payload"><strong>4. Payload</strong>GoldHEN / hen</li>
+          <li id="step-webkit"><strong>1. Browser</strong>WebKit primitive</li>
+          <li id="step-validate"><strong>2. Check</strong>offsets + ROP</li>
+          <li id="step-kernel"><strong>3. Kernel</strong>Afterglow</li>
+          <li id="step-payload"><strong>4. Payload</strong>GoldHEN / ps4-hen</li>
         </ol>
 
         <div class="bar"><i id="bar"></i></div>
@@ -320,7 +328,7 @@
         <div class="actions">
           <button id="start" class="btn primary" type="button">start</button>
           <button id="retry" class="btn" type="button" style="display: none">reload and retry</button>
-          <a id="fallback" class="btn danger" href="index.html" style="display: none">proven Afterglow</a>
+          <a id="fallback" class="btn danger" href="index.html" style="display: none">Afterglow instead</a>
           <a id="menu" class="btn ghost" href="../index.html?menu=1" style="display: none">menu</a>
           <button id="toggle-log" class="btn ghost" type="button">show log</button>
         </div>
@@ -330,7 +338,13 @@
           <label><input type="radio" name="payload" value="goldhen" checked /><span>GoldHEN</span></label>
           <label><input type="radio" name="payload" value="hen" /><span>ps4-hen</span></label>
           <label><input type="radio" name="payload" value="none" /><span>none</span></label>
+          <span class="payload-note">none = kernel open, no enabler</span>
         </div>
+
+        <p class="note">
+          Close games and save first. This can crash or hang the console. One
+          kernel attempt per boot; reboot after a failure.
+        </p>
 
         <div id="error"></div>
         <div id="log-wrap"><pre id="console"></pre></div>
@@ -346,13 +360,13 @@
       <div class="foot" id="foot">
         <span>Wobkot: MIT, ufm42 &nbsp; Afterglow: AGPL-3.0, well0nez</span>
         <span>
-          <a href="index.html">proven engine</a>
+          <a href="index.html">Afterglow</a>
           &nbsp; <a href="../primitive-test.html">self-test</a>
           &nbsp; <a href="../index.html?menu=1">menu</a>
         </span>
       </div>
     </div>
 
-    <script src="../src/combined.js?v=4" defer></script>
+    <script src="../src/combined.js?v=8" defer></script>
   </body>
 </html>

@@ -11,7 +11,7 @@
   const PAYLOAD_KEY = 'wobkot.fast.payload';
   const HISTORY_KEY = 'wobkot.fast.history';
   const ATTEMPT_KEY = 'wobkot.fast.kernelAttempted';
-  const BUILD = '4';
+  const BUILD = '8';
 
   const state = {
     busy: false,
@@ -273,9 +273,9 @@
       if (err && err.stack) logger.debug(err.stack);
     }
 
-    setHeadline('Fast path stopped', 'fail');
+    setHeadline('Stopped', 'fail');
     setError(message);
-    showLog(true);
+    showLog(false);
 
     if (state.unsafe) {
       setStatus('Do not close this page. Cold boot the console.', 'fail');
@@ -284,11 +284,11 @@
       const foot = el('foot');
       if (foot) foot.style.display = 'none';
     } else if (state.kernelTouched) {
-      setStatus('Kernel stage was attempted. Cold boot before retrying.', 'fail');
+      setStatus('Kernel attempt made. Cold boot before another run.', 'fail');
       setButtons(['fallback', 'menu']);
       setStep(state.step || 'kernel', 'fail');
     } else {
-      setStatus('Stopped before touching the kernel. Retry or use the proven engine.', 'fail');
+      setStatus('Stopped before kernel. Reload and retry, or use Afterglow.', 'fail');
       setButtons(['retry', 'fallback', 'menu']);
       setStep(state.step || 'webkit', 'fail');
     }
@@ -304,8 +304,8 @@
     state.unsafe = false;
     state.ctx = null;
     setError('');
-    setHeadline('Jailbreaking...', 'running');
-    setStatus('Loading...', 'running');
+    setHeadline('Running', 'running');
+    setStatus('Starting...', 'running');
     setButtons([]);
     resetSteps();
     startTimer();
@@ -336,7 +336,7 @@
 
       state.step = 'webkit';
       setStep('webkit', 'active');
-      setStatus('Building WebKit primitive...', 'running');
+      setStatus('Building browser primitive...', 'running');
       arw.init();
       afterglow_check_arw();
       setStep('webkit', 'done');
@@ -344,7 +344,7 @@
 
       state.step = 'validate';
       setStep('validate', 'active');
-      setStatus('Validating 14.02 offsets...', 'running');
+      setStatus('Checking offsets and ROP...', 'running');
       setBar(45);
       const base = afterglow_precheck_webkit_base();
       afterglow_validate_gadgets(base);
@@ -357,7 +357,7 @@
       setStep('validate', 'done');
       setBar(60);
 
-      setStatus('Calling getpid...', 'running');
+      setStatus('Checking ROP...', 'running');
       const pid = fn.getpid.invoke();
       if (!Number.isFinite(pid) || pid <= 0 || pid > 1000000) {
         throw new Error(`getpid returned an implausible value: ${pid}`);
@@ -366,7 +366,7 @@
 
       state.step = 'kernel';
       setStep('kernel', 'active');
-      setStatus('Running Afterglow kernel exploit...', 'running');
+      setStatus('Running kernel exploit...', 'running');
       setBar(70);
 
       // Warm the payload and patch set while the kernel stage runs. The
@@ -423,11 +423,11 @@
         const label = selectedPayload() === 'hen' ? 'ps4-hen' : 'GoldHEN';
         setStep('payload', 'done');
         setBar(100);
-        setStatus(`Jailbroken in ${((performance.now() - state.started) / 1000).toFixed(1)} s - ${label} started.`, 'done');
+        setStatus(`Jailbroken in ${((performance.now() - state.started) / 1000).toFixed(1)} s. ${label} started.`, 'done');
       } else {
         setStep('payload', 'skip');
         setBar(100);
-        setStatus(`Jailbroken in ${((performance.now() - state.started) / 1000).toFixed(1)} s - kernel open.`, 'done');
+        setStatus(`Jailbroken in ${((performance.now() - state.started) / 1000).toFixed(1)} s. Kernel open; no payload selected.`, 'done');
       }
 
       setHeadline('Jailbroken', 'done');
@@ -449,8 +449,8 @@
   }
 
   function ready() {
-    setHeadline('Fast path ready', '');
-    setStatus('Press start to build the primitive and run Afterglow.', 'idle');
+    setHeadline('Ready', '');
+    setStatus('Press start.', 'idle');
     setButtons(['start', 'fallback', 'menu']);
     resetSteps();
   }
@@ -488,6 +488,8 @@
     }
 
     setText('fw', 'PS4');
+    const uaFirmware = /PlayStation\s+4[/ ](\d+\.\d+)/.exec(navigator.userAgent);
+    if (uaFirmware) setText('fw', 'PS4 ' + uaFirmware[1]);
     showLog(false);
     renderHistory();
 

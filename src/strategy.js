@@ -19,17 +19,17 @@
     [ENGINE_WOBKOT]: {
       id: ENGINE_WOBKOT,
       label: 'Wobkot',
-      detail: 'Wobkot WebKit primitive + Lapse kernel stage',
+      detail: 'Wobkot browser primitive + Lapse kernel exploit',
     },
     [ENGINE_AFTERGLOW]: {
       id: ENGINE_AFTERGLOW,
       label: 'Afterglow',
-      detail: 'Proven Afterglow WebKit + kernel chain',
+      detail: 'Afterglow browser + kernel chain',
     },
     [ENGINE_COMBINED]: {
       id: ENGINE_COMBINED,
-      label: 'Wobkot x Afterglow',
-      detail: 'Wobkot WebKit primitive + Afterglow kernel stage (fast path)',
+      label: 'Wobkot + Afterglow',
+      detail: 'Wobkot browser primitive + Afterglow kernel exploit',
     },
   };
 
@@ -65,8 +65,8 @@
       afterglowPath: 'afterglow/index.html',
       legacyPath: 'legacy.html',
       note:
-        'Fast path: Wobkot builds the browser primitive, Afterglow runs the ' +
-        'kernel exploit. The proven Afterglow chain is the fallback.',
+        'Wobkot builds the browser primitive; Afterglow runs the kernel ' +
+        'exploit and starts a payload. The root URL runs this automatically.',
     },
     {
       id: 'ps4-12-13',
@@ -80,7 +80,7 @@
       engines: [ENGINE_AFTERGLOW],
       afterglowPath: 'afterglow/index.html',
       legacyPath: 'legacy.html',
-      note: 'Afterglow is the proven chain for this range.',
+      note: 'Afterglow runs the browser and kernel stages for this firmware.',
     },
     {
       id: 'ps4-9-11',
@@ -93,7 +93,7 @@
       primary: ENGINE_WOBKOT,
       engines: [ENGINE_WOBKOT],
       legacyPath: 'legacy.html',
-      note: 'Wobkot legacy chain (WebKit + Lapse).',
+      note: 'Wobkot runs the browser and Lapse kernel stages for this firmware.',
     },
     {
       id: 'ps5',
@@ -106,7 +106,7 @@
       primary: ENGINE_WOBKOT,
       engines: [ENGINE_WOBKOT],
       legacyPath: 'legacy.html',
-      note: 'Wobkot PS5 chain, as provided by upstream.',
+      note: "Wobkot's PS5 chain, as provided upstream.",
     },
   ];
 
@@ -180,11 +180,11 @@
     let reason = 'Unsupported console';
     if (console === 4) {
       reason =
-        'This toolkit has no chain for PS4 firmware ' +
+        'PS4 firmware ' +
         versionKey(major, minor) +
-        '. Supported PS4 ranges are 9.00-11.52, 12.00-13.52 and 14.00-14.02.';
+        ' is not supported. Supported PS4 ranges: 9.00-11.52, 12.00-13.52, 14.00-14.02.';
     } else if (console === 5) {
-      reason = 'This toolkit has no chain for this PS5 firmware.';
+      reason = 'This PS5 firmware is not in the table.';
     }
 
     return {
