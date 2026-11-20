@@ -17,6 +17,21 @@ PS4 9.00 - 11.52    Wobkot legacy (Lapse kernel)
 PS5                 Wobkot PS5 chain (upstream support)
 ```
 
+## What changed from upstream Wobkot
+
+- Added a firmware-aware hub (`index.html`) and a single routing table
+  (`src/strategy.js`). The original console page is now `legacy.html`.
+- Vendored Afterglow under `afterglow/` for PS4 12.00-14.02, with its own
+  `cache.appcache`, payloads and patch sets.
+- Added the fast path (`afterglow/combined.html` + `src/combined.js`) that
+  runs Wobkot's WebKit primitive and Afterglow's kernel stage.
+- Added the adapter (`src/afterglow_host.js`) with byte-level gadget checks,
+  base prechecks and a ROP pivot precheck.
+- Added the safe self-test (`primitive-test.html`), diagnostics (`diag.html`),
+  a no-cache HTTP server (`host.py`) and the maintenance checks under `tools/`.
+- Retired the legacy Lapse path above PS4 11.52, since those firmwares are
+  routed to Afterglow.
+
 ## Quick start (Windows)
 
 1. **Save your game and close apps.** A kernel exploit can crash or hang the
