@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Wobkot x Afterglow - fast path</title>
+    <style>
+      :root {
+        --bg: #0b0d10;
+        --panel: #0e1116;
+        --sunk: #11151b;
+        --line: #1e2732;
+        --fg: #c8ced8;
+        --bright: #e6ebf2;
+        --dim: #7c8798;
+        --faint: #4d5765;
+        --ok: #7fd0a0;
+        --bad: #d08a7f;
+        --warn: #d8c07f;
+        --accent: #9fb3d0;
+        --sans: "Segoe UI", system-ui, sans-serif;
+        --mono: Consolas, "DejaVu Sans Mono", monospace;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        min-height: 100%;
+        background: var(--bg);
+        color: var(--fg);
+        font: 16px/1.45 var(--sans);
+      }
+      #brand {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--line);
+        background: var(--panel);
+        text-align: center;
+      }
+      #brand b {
+        color: var(--bright);
+        font-size: 16px;
+        letter-spacing: 0.12em;
+      }
+      .wrap {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 16px;
+      }
+      .panel {
+        border: 1px solid var(--line);
+        background: var(--panel);
+        padding: 16px;
+        margin-bottom: 14px;
+      }
+      h1 {
+        margin: 0 0 6px;
+        font-size: 22px;
+        color: var(--bright);
+      }
+      p {
+        margin: 8px 0;
+      }
+      .muted {
+        color: var(--dim);
+      }
+      .warn {
+        color: var(--warn);
+      }
+      #status {
+        font-family: var(--mono);
+        font-size: 15px;
+        color: var(--accent);
+        min-height: 24px;
+      }
+      #status.running {
+        color: var(--accent);
+      }
+      #status.armed {
+        color: var(--warn);
+      }
+      #status.done {
+        color: var(--ok);
+        font-weight: 700;
+      }
+      #status.fail {
+        color: var(--bad);
+        font-weight: 700;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        margin: 12px 0;
+      }
+      .opt {
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+        border: 1px solid var(--line);
+        background: var(--sunk);
+        padding: 10px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .opt input {
+        width: 18px;
+        height: 18px;
+      }
+      button,
+      .btn {
+        display: inline-block;
+        border: 1px solid #2b3a4b;
+        background: #16202b;
+        color: var(--bright);
+        padding: 12px 18px;
+        font: 16px/1 var(--sans);
+        border-radius: 4px;
+        cursor: pointer;
+        text-decoration: none;
+      }
+      button:hover,
+      .btn:hover {
+        background: #1c2a38;
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: default;
+      }
+      .btn.primary {
+        border-color: #3b6a54;
+        background: #173326;
+        color: #b9f0d1;
+      }
+      .btn.danger {
+        border-color: #5a2f2f;
+        background: #2a1717;
+        color: #f0c0b9;
+      }
+      #console {
+        width: 100%;
+        height: 52vh;
+        min-height: 260px;
+        margin: 0;
+        padding: 14px;
+        overflow: auto;
+        box-sizing: border-box;
+        font: 12px/1.45 var(--mono);
+        background: #131416;
+        color: #c1c2c5;
+        white-space: pre-wrap;
+      }
+      .foot {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        margin-top: 14px;
+        color: var(--dim);
+        font-size: 13px;
+      }
+      a {
+        color: var(--accent);
+      }
+      .hidden {
+        display: none;
+      }
+      @media (max-width: 700px) {
+        .wrap {
+          padding: 10px;
+        }
+        #console {
+          height: 46vh;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="brand"><b>wobkot x afterglow</b></div>
+
+    <div class="wrap">
+      <div class="panel">
+        <h1>Fast path: Wobkot primitive + Afterglow kernel</h1>
+        <p class="muted">
+          PS4 14.00 - 14.02. Wobkot builds the WebKit primitive, then Afterglow
+          runs its proven kernel stage and payload loader.
+        </p>
+        <p class="warn">
+          Kernel exploit. Save your game and close apps first. A failed attempt
+          can crash or hang the console. Do not close this page if the log says
+          the handles are NOT defused.
+        </p>
+
+        <div class="row">
+          <label class="opt">
+            <input type="radio" name="payload" value="goldhen" checked />
+            <span>GoldHEN (recommended)</span>
+          </label>
+          <label class="opt">
+            <input type="radio" name="payload" value="hen" />
+            <span>ps4-hen</span>
+          </label>
+          <label class="opt">
+            <input type="radio" name="payload" value="none" />
+            <span>no payload</span>
+          </label>
+        </div>
+
+        <div class="row">
+          <label class="opt">
+            <input type="checkbox" id="probe" />
+            <span>run Afterglow environment probe first</span>
+          </label>
+        </div>
+
+        <div class="row">
+          <button id="start" class="btn primary" type="button">start</button>
+          <button id="cancel" class="btn" type="button" style="display: none">cancel</button>
+          <button id="retry" class="btn" type="button" style="display: none">reload and retry</button>
+          <a id="fallback" class="btn" href="index.html" style="display: none">proven Afterglow engine</a>
+          <a id="back" class="btn" href="../index.html" style="display: none">hub</a>
+        </div>
+
+        <div id="status">Loading...</div>
+      </div>
+
+      <pre id="console"></pre>
+
+      <div class="foot" id="foot">
+        <span>Wobkot: MIT, ufm42</span>
+        <span>Afterglow: AGPL-3.0, well0nez</span>
+        <a href="index.html">proven engine</a>
+        <a href="../primitive-test.html">primitive self-test</a>
+        <a href="../index.html">hub</a>
+      </div>
+    </div>
+
+    <script src="../src/combined.js" defer></script>
+  </body>
+</html>

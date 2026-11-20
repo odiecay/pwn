@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Diagnostics - PS4 WebKit Toolkit</title>
+    <style>
+      :root {
+        --bg: #0b0d10;
+        --panel: #0e1116;
+        --line: #1e2732;
+        --fg: #c8ced8;
+        --bright: #e6ebf2;
+        --dim: #7c8798;
+        --ok: #7fd0a0;
+        --bad: #d08a7f;
+        --warn: #d8c07f;
+        --accent: #9fb3d0;
+        --sans: "Segoe UI", system-ui, sans-serif;
+        --mono: Consolas, "DejaVu Sans Mono", monospace;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        min-height: 100%;
+        background: var(--bg);
+        color: var(--fg);
+        font: 15px/1.45 var(--sans);
+      }
+      .wrap {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 16px;
+      }
+      h1 {
+        font-size: 22px;
+        color: var(--bright);
+        margin: 0 0 10px;
+      }
+      h2 {
+        font-size: 17px;
+        color: var(--bright);
+        margin: 18px 0 8px;
+      }
+      .panel {
+        border: 1px solid var(--line);
+        background: var(--panel);
+        padding: 16px;
+        margin-bottom: 14px;
+      }
+      .mono {
+        font-family: var(--mono);
+        font-size: 12px;
+        word-break: break-all;
+        color: var(--dim);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      th,
+      td {
+        border-bottom: 1px solid var(--line);
+        padding: 7px 6px;
+        text-align: left;
+        vertical-align: top;
+      }
+      th {
+        color: var(--dim);
+      }
+      td code {
+        font-family: var(--mono);
+        color: var(--accent);
+      }
+      .ok {
+        color: var(--ok);
+      }
+      .bad {
+        color: var(--bad);
+      }
+      .warn {
+        color: var(--warn);
+      }
+      .btn {
+        display: inline-block;
+        border: 1px solid #2b3a4b;
+        background: #16202b;
+        color: var(--bright);
+        padding: 10px 14px;
+        font: 14px/1 var(--sans);
+        border-radius: 4px;
+        cursor: pointer;
+        text-decoration: none;
+      }
+      .btn:hover {
+        background: #1c2a38;
+      }
+      a {
+        color: var(--accent);
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 10px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="panel">
+        <h1>Diagnostics</h1>
+        <div id="summary" class="mono">Checking...</div>
+        <div class="row">
+          <a class="btn" href="index.html">hub</a>
+          <button id="recheck" class="btn" type="button">re-check</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Console</h2>
+        <table>
+          <tbody id="console-info"></tbody>
+        </table>
+      </div>
+
+      <div class="panel">
+        <h2>Files</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Path</th>
+              <th>Status</th>
+              <th>Type</th>
+              <th>Bytes</th>
+              <th>Cache-Control</th>
+            </tr>
+          </thead>
+          <tbody id="files"></tbody>
+        </table>
+      </div>
+
+      <div class="panel">
+        <h2>Notes</h2>
+        <p class="mono">
+          HTTP status 200 is required for every non-optional file. A 404 means
+          the server is pointed at the wrong directory. text/javascript for .js
+          and text/cache-manifest for .appcache are required by the console's
+          browser.
+        </p>
+      </div>
+    </div>
+
+    <script src="src/strategy.js"></script>
+    <script src="src/diag.js" defer></script>
+  </body>
+</html>

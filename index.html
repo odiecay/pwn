@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>PS4 WebKit Toolkit - Wobkot + Afterglow</title>
+    <style>
+      :root {
+        --bg: #0b0d10;
+        --panel: #0e1116;
+        --sunk: #11151b;
+        --line: #1e2732;
+        --fg: #c8ced8;
+        --bright: #e6ebf2;
+        --dim: #7c8798;
+        --faint: #4d5765;
+        --ok: #7fd0a0;
+        --bad: #d08a7f;
+        --warn: #d8c07f;
+        --accent: #9fb3d0;
+        --sans: "Segoe UI", system-ui, sans-serif;
+        --mono: Consolas, "DejaVu Sans Mono", monospace;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        min-height: 100%;
+        background: var(--bg);
+        color: var(--fg);
+        font: 16px/1.45 var(--sans);
+      }
+      .wrap {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 18px;
+      }
+      header {
+        text-align: center;
+        padding: 10px 0 18px;
+      }
+      header h1 {
+        margin: 0;
+        font-size: 26px;
+        letter-spacing: 0.02em;
+        color: var(--bright);
+      }
+      header p {
+        margin: 8px 0 0;
+        color: var(--dim);
+      }
+      .panel {
+        border: 1px solid var(--line);
+        background: var(--panel);
+        padding: 18px;
+        margin-bottom: 16px;
+      }
+      h2 {
+        margin: 0 0 10px;
+        font-size: 18px;
+        color: var(--bright);
+      }
+      .detected {
+        font: 16px/1.4 var(--mono);
+        color: var(--accent);
+        margin-bottom: 8px;
+      }
+      .mono {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--faint);
+        word-break: break-all;
+      }
+      .why {
+        margin: 8px 0 14px;
+        color: var(--dim);
+      }
+      .why.bad {
+        color: var(--bad);
+      }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 12px 0;
+      }
+      .btn {
+        display: inline-block;
+        border: 1px solid #2b3a4b;
+        background: #16202b;
+        color: var(--bright);
+        padding: 13px 18px;
+        font: 16px/1 var(--sans);
+        border-radius: 4px;
+        cursor: pointer;
+        text-decoration: none;
+      }
+      .btn:hover {
+        background: #1c2a38;
+      }
+      .btn.primary {
+        border-color: #3b6a54;
+        background: #173326;
+        color: #b9f0d1;
+      }
+      .btn.secondary {
+        border-color: #4a4a2f;
+        background: #2a2817;
+        color: #efe2b9;
+      }
+      .btn.small {
+        padding: 9px 12px;
+        font-size: 14px;
+      }
+      .count {
+        min-height: 22px;
+        color: var(--warn);
+        font-family: var(--mono);
+        font-size: 14px;
+      }
+      .warn {
+        color: var(--warn);
+        margin: 10px 0;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
+      th,
+      td {
+        border-bottom: 1px solid var(--line);
+        padding: 9px 8px;
+        text-align: left;
+        vertical-align: top;
+      }
+      th {
+        color: var(--dim);
+        font-weight: 600;
+      }
+      td code {
+        color: var(--accent);
+        font-family: var(--mono);
+        font-size: 13px;
+      }
+      .foot {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        color: var(--dim);
+        font-size: 13px;
+        padding: 6px 0 20px;
+      }
+      a {
+        color: var(--accent);
+      }
+      @media (max-width: 700px) {
+        .wrap {
+          padding: 10px;
+        }
+        header h1 {
+          font-size: 21px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <h1>PS4 WebKit Toolkit</h1>
+        <p>Wobkot primitive + Afterglow kernel / proven fallback</p>
+      </header>
+
+      <section class="panel">
+        <div id="detected" class="detected">Detecting console...</div>
+        <div id="ua" class="mono"></div>
+        <div id="why" class="why"></div>
+        <div id="countdown" class="count"></div>
+        <div id="actions" class="actions"></div>
+        <p class="warn">
+          Kernel exploit. Save your game and close apps first. A failed attempt
+          can crash or hang the console. Do not close the run page if it says
+          the handles are NOT defused.
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>Firmware routing</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Console</th>
+              <th>Firmware</th>
+              <th>Recommended</th>
+              <th>Also available</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>PS4</td>
+              <td><code>9.00 - 11.52</code></td>
+              <td>Wobkot legacy</td>
+              <td>Primitive self-test</td>
+            </tr>
+            <tr>
+              <td>PS4</td>
+              <td><code>12.00 - 13.52</code></td>
+              <td>Afterglow</td>
+              <td>Primitive self-test</td>
+            </tr>
+            <tr>
+              <td>PS4</td>
+              <td><code>14.00 - 14.02</code></td>
+              <td>Wobkot x Afterglow (fast path)</td>
+              <td>Proven Afterglow</td>
+            </tr>
+            <tr>
+              <td>PS5</td>
+              <td>as provided</td>
+              <td>Wobkot PS5</td>
+              <td>Primitive self-test</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="mono" style="margin-top: 12px">
+          Afterglow exact tables: 12.00, 12.02, 12.50, 12.52, 13.00, 13.02,
+          13.04, 13.50, 13.52, 14.00, 14.02. It refuses an unknown firmware
+          instead of running with the wrong offsets.
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>Tools</h2>
+        <div class="actions">
+          <a class="btn small" href="afterglow/combined.html">Fast path options</a>
+          <a class="btn small" href="afterglow/index.html">Proven Afterglow</a>
+          <a class="btn small" href="legacy.html">Wobkot legacy</a>
+          <a class="btn small" href="primitive-test.html">Primitive self-test</a>
+          <a class="btn small" href="diag.html">Diagnostics</a>
+        </div>
+      </section>
+
+      <div class="foot">
+        <span>Wobkot: MIT, ufm42</span>
+        <span>Afterglow: AGPL-3.0, well0nez</span>
+        <span>Combined engine: Wobkot primitive + Afterglow kernel</span>
+      </div>
+    </div>
+
+    <script src="src/strategy.js"></script>
+    <script>
+      (function () {
+        var params = new URLSearchParams(location.search);
+        var ua = navigator.userAgent;
+        var detected = document.getElementById('detected');
+        var uaEl = document.getElementById('ua');
+        var why = document.getElementById('why');
+        var actions = document.getElementById('actions');
+        var countdown = document.getElementById('countdown');
+
+        if (typeof parsePlayStationUA !== 'function' || typeof routeFor !== 'function') {
+          detected.textContent = 'src/strategy.js failed to load';
+          why.className = 'why bad';
+          why.textContent = 'Check that host.py is serving this folder and that src/strategy.js is present.';
+          return;
+        }
+
+        var ps = parsePlayStationUA(ua);
+
+        // Desktop preview: /?console=4&fw=14.02
+        if (params.get('console') && params.get('fw')) {
+          var fw = params.get('fw').split('.');
+          ps = {
+            console: Number.parseInt(params.get('console'), 10),
+            major: Number.parseInt(fw[0], 10),
+            minor: Number.parseInt(fw[1] || '0', 16),
+            key: params.get('fw'),
+          };
+        }
+
+        var route = ps ? routeFor(ps.console, ps.major, ps.minor) : null;
+        var primary = null;
+        var timer = null;
+
+        function button(label, href, cls) {
+          var a = document.createElement('a');
+          a.className = 'btn ' + (cls || '');
+          a.href = href;
+          a.textContent = label;
+          return a;
+        }
+
+        function add(label, href, cls) {
+          var a = button(label, href, cls);
+          actions.appendChild(a);
+          return a;
+        }
+
+        function stopTimer() {
+          if (timer !== null) {
+            clearInterval(timer);
+            timer = null;
+          }
+          countdown.textContent = '';
+        }
+
+        function startTimer() {
+          if (!primary || params.get('noauto') === '1') return;
+
+          var left = 5;
+          countdown.textContent = 'Starting ' + primary.label + ' in ' + left + 's...';
+          timer = setInterval(function () {
+            left -= 1;
+            if (left <= 0) {
+              stopTimer();
+              location.href = primary.href;
+              return;
+            }
+            countdown.textContent = 'Starting ' + primary.label + ' in ' + left + 's...';
+          }, 1000);
+
+          var cancel = document.createElement('button');
+          cancel.className = 'btn small';
+          cancel.type = 'button';
+          cancel.textContent = 'cancel auto-start';
+          cancel.addEventListener('click', function (event) {
+            event.preventDefault();
+            stopTimer();
+          });
+          actions.appendChild(cancel);
+        }
+
+        if (ps) {
+          detected.textContent =
+            'PlayStation ' + ps.console + '  firmware ' + versionKey(ps.major, ps.minor);
+        } else {
+          detected.textContent = 'No PlayStation user agent detected';
+        }
+        uaEl.textContent = ua;
+
+        if (!ps) {
+          why.textContent =
+            'Open this page from the console browser. On a desktop it only ' +
+            'shows the routing; use ?console=4&fw=14.02 to preview.';
+          add('Wobkot legacy', 'legacy.html', 'small');
+          add('Proven Afterglow', 'afterglow/index.html', 'small');
+          add('Fast path options', 'afterglow/combined.html', 'small');
+          stopTimer();
+          return;
+        }
+
+        if (!route || !route.supported) {
+          why.className = 'why bad';
+          why.textContent = route && route.reason ? route.reason : 'Unsupported console.';
+          add('Primitive self-test', 'primitive-test.html', 'small');
+          add('Diagnostics', 'diag.html', 'small');
+          stopTimer();
+          return;
+        }
+
+        why.textContent = route.note;
+
+        if (route.engine === 'combined') {
+          primary = {
+            label: 'fast path',
+            href: 'afterglow/combined.html?run=1&payload=goldhen.bin&mode=goldhen',
+          };
+          add('Start fast path (GoldHEN)', primary.href, 'primary');
+          add('Fast path options', 'afterglow/combined.html', 'secondary');
+          add('Proven Afterglow (fallback)', 'afterglow/index.html', 'small');
+          add('Primitive self-test', 'primitive-test.html', 'small');
+        } else if (route.engine === 'afterglow') {
+          primary = { label: 'Afterglow', href: route.path };
+          add('Start Afterglow', route.path, 'primary');
+          add('Primitive self-test', 'primitive-test.html', 'small');
+        } else {
+          primary = { label: 'Wobkot', href: route.path };
+          add('Start Wobkot', route.path, 'primary');
+          add('Primitive self-test', 'primitive-test.html', 'small');
+        }
+
+        add('Diagnostics', 'diag.html', 'small');
+        startTimer();
+      })();
+    </script>
+  </body>
+</html>

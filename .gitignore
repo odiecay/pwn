@@ -1,0 +1,9 @@
+src/ps4/payload.bin
+src/ps5/elfldr.elf
+src/ps5/kexp.bin
+
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+*.log

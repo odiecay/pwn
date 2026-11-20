@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Primitive self-test - no kernel exploit</title>
+    <style>
+      :root {
+        --bg: #0b0d10;
+        --panel: #0e1116;
+        --line: #1e2732;
+        --fg: #c8ced8;
+        --bright: #e6ebf2;
+        --dim: #7c8798;
+        --ok: #7fd0a0;
+        --bad: #d08a7f;
+        --warn: #d8c07f;
+        --accent: #9fb3d0;
+        --sans: "Segoe UI", system-ui, sans-serif;
+        --mono: Consolas, "DejaVu Sans Mono", monospace;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        min-height: 100%;
+        background: var(--bg);
+        color: var(--fg);
+        font: 16px/1.45 var(--sans);
+      }
+      .wrap {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 16px;
+      }
+      .panel {
+        border: 1px solid var(--line);
+        background: var(--panel);
+        padding: 16px;
+        margin-bottom: 14px;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 22px;
+        color: var(--bright);
+      }
+      p {
+        margin: 8px 0;
+      }
+      .muted {
+        color: var(--dim);
+      }
+      .warn {
+        color: var(--warn);
+      }
+      #status {
+        font-family: var(--mono);
+        font-size: 15px;
+        color: var(--accent);
+        min-height: 24px;
+        margin: 10px 0;
+      }
+      #status.done {
+        color: var(--ok);
+        font-weight: 700;
+      }
+      #status.fail {
+        color: var(--bad);
+        font-weight: 700;
+      }
+      .btn {
+        display: inline-block;
+        border: 1px solid #2b3a4b;
+        background: #16202b;
+        color: var(--bright);
+        padding: 12px 18px;
+        font: 16px/1 var(--sans);
+        border-radius: 4px;
+        cursor: pointer;
+        text-decoration: none;
+      }
+      .btn:hover {
+        background: #1c2a38;
+      }
+      .btn.primary {
+        border-color: #3b6a54;
+        background: #173326;
+        color: #b9f0d1;
+      }
+      #console {
+        width: 100%;
+        height: 55vh;
+        min-height: 280px;
+        margin: 0;
+        padding: 14px;
+        overflow: auto;
+        box-sizing: border-box;
+        font: 12px/1.45 var(--mono);
+        background: #131416;
+        color: #c1c2c5;
+        white-space: pre-wrap;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+      }
+      a {
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="panel">
+        <h1>Primitive self-test</h1>
+        <p class="muted">
+          Builds Wobkot's WebKit primitive and validates its gadgets and bases.
+          It does not run a kernel exploit, does not patch the kernel, and does
+          not load a payload.
+        </p>
+        <p class="warn">
+          Use this to prove the 14.02 WebKit offsets before trying the fast
+          path. Reload the page afterwards for a clean process.
+        </p>
+        <div class="row">
+          <button id="start" class="btn primary" type="button">run self-test</button>
+          <a class="btn" href="index.html">hub</a>
+          <a class="btn" href="afterglow/index.html">proven Afterglow</a>
+        </div>
+        <div id="status">Ready.</div>
+      </div>
+
+      <pre id="console"></pre>
+    </div>
+
+    <script src="src/primitive_test.js" defer></script>
+  </body>
+</html>
