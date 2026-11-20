@@ -12,7 +12,7 @@
   const HISTORY_KEY = 'wobkot.fast.history';
   const ATTEMPT_KEY = 'wobkot.fast.kernelAttempted';
   const ALREADY_KEY = 'wobkot.fast.alreadyJailbroken';
-  const BUILD = '20';
+  const BUILD = '21';
 
   const state = {
     busy: false,
@@ -473,7 +473,7 @@
       state.step = 'webkit';
       setStep('webkit', 'active');
       setStatus('Building browser primitive...', 'running');
-      setHint('If the browser warns about memory, press OK.');
+      setHint('If the browser warns about memory, press OK. It may reload and start again.');
       arw.init();
       afterglow_check_arw();
       markPhase('browser');
