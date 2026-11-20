@@ -63,11 +63,13 @@ function get_syscall(id) {
 }
 
 async function exploit() {
-  if (version.major < 12 || (version.major === 12 && version.minor <= 2)) {
+  // Lapse is the legacy kernel stage for PS4 9.00-11.52. PS4 12.00+ is routed
+  // to Afterglow by src/strategy.js; the check stays here so a direct legacy
+  // load cannot run Lapse on a firmware it was not built for.
+  if (version.major < 12) {
     await load_script('src/lapse.js');
   } else {
-    throw new Error(`${version} exploit is WIP`);
-    //await load_script('src/lapse.js');
+    throw new Error(`${version} uses the Afterglow engine; open /afterglow/`);
   }
 
   await exploit_main();
@@ -194,6 +196,11 @@ async function load_bin() {
   mem.free(pthread_addr_addr);
 }
 
+// PS4 12.00 and newer are routed to Afterglow by src/strategy.js. The 13.x
+// and 14.x entries below are kept because the combined fast path uses their
+// WebKit values for Wobkot's primitive; they do not enable the Lapse kernel
+// stage for those firmwares. Add new WebKit/kernel values here only when you
+// have verified them on the matching build.
 const impl_map = {
   9: {
     0: {
