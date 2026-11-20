@@ -225,6 +225,7 @@
       }
 
       state.done = true;
+      globalThis.afterglow_iface = iface;
       const payload = iface.payload
         ? ' Payload started.'
         : ' Payload did not start; the kernel is open.';

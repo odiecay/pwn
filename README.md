@@ -68,6 +68,8 @@ index.html                  firmware-aware hub
 legacy.html                 Wobkot console page (PS4 9.00-11.52 / PS5)
 primitive-test.html         safe WebKit primitive self-test
 diag.html                   file/server diagnostics
+start.cmd                   Windows: start the host
+check.cmd                   Windows: run the static checks
 afterglow/                  vendored Afterglow engine, unmodified
 afterglow/combined.html     fast path UI
 src/strategy.js             one firmware -> engine routing table
