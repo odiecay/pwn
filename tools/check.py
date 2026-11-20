@@ -184,6 +184,27 @@ def check_fast_engine(failures: list[str]) -> None:
         ok("fast Afterglow module")
 
 
+def check_cache_bust(failures: list[str]) -> None:
+    js = (ROOT / "src" / "combined.js").read_text(encoding="utf-8")
+    html = (ROOT / "afterglow" / "combined.html").read_text(encoding="utf-8")
+
+    build = re.search(r"const BUILD = '([^']+)'", js)
+    tag = re.search(r'combined\.js\?v=([^"\']+)', html)
+
+    if not build or not tag:
+        fail("combined.js cache-bust version is missing", failures)
+        return
+
+    if build.group(1) != tag.group(1):
+        fail(
+            f"combined.js BUILD={build.group(1)} but combined.html loads v={tag.group(1)}",
+            failures,
+        )
+        return
+
+    ok(f"combined.js cache bust (v={build.group(1)})")
+
+
 def check_afterglow_tables(failures: list[str]) -> None:
     offsets = (ROOT / "afterglow" / "ps4_offsets.js").read_text(encoding="utf-8")
     afterglow = (ROOT / "afterglow" / "afterglow.js").read_text(encoding="utf-8")
@@ -321,6 +342,7 @@ def main() -> int:
     check_html_refs(failures)
     check_manifest(failures)
     check_fast_engine(failures)
+    check_cache_bust(failures)
     check_lock(failures)
     check_afterglow_tables(failures)
     if not args.no_node:

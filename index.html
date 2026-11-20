@@ -82,6 +82,11 @@
         color: #5f6b79;
         word-break: break-all;
       }
+      .plain {
+        margin: 10px 0 14px;
+        max-width: 72ch;
+        color: var(--fg);
+      }
       .why {
         color: var(--dim);
         margin: 8px 0 16px;
@@ -181,13 +186,19 @@
   <body>
     <div class="wrap">
       <div class="top">
-        <div class="brand">PS4 <span>WEBKIT</span> TOOLKIT</div>
+        <div class="brand">PS4 <span>WEBKIT</span> EXPLOIT</div>
         <div class="mono">wobkot + afterglow</div>
       </div>
 
       <section class="panel">
-        <h1 id="detected">Detecting console...</h1>
+        <h1>PS4 WebKit exploit host</h1>
+        <div class="detected" id="detected">Detecting console...</div>
         <div class="detected" id="firmware"></div>
+        <p class="plain">
+          Wobkot gets read/write in the PS4 browser process. Afterglow uses it to
+          run the kernel exploit and load GoldHEN. Nothing is installed; reboot
+          clears it.
+        </p>
         <div class="why" id="why"></div>
         <div class="actions" id="actions"></div>
         <div class="hint" id="hint"></div>
@@ -248,7 +259,7 @@
       </div>
     </div>
 
-    <script src="src/strategy.js"></script>
+    <script src="src/strategy.js?v=4"></script>
     <script>
       (function () {
         var params = new URLSearchParams(location.search);
@@ -288,7 +299,7 @@
             'This page routes by the PlayStation user agent. On a desktop use ?console=4&fw=14.02 to preview.';
           add('Wobkot legacy', 'legacy.html', 'small');
           add('Proven Afterglow', 'afterglow/index.html', 'small');
-          add('Fast path options', 'afterglow/combined.html', 'small');
+          add('Fast path options', 'afterglow/combined.html?menu=1', 'small');
           return;
         }
 
@@ -310,7 +321,7 @@
           var extra = params.get('debug') === '1' ? '&debug=1' : '';
           var target =
             route.engine === 'combined'
-              ? 'afterglow/combined.html?run=1' + extra
+              ? 'afterglow/combined.html?run=1&v=' + Date.now() + extra
               : route.path;
           location.replace(target);
           return;
@@ -320,7 +331,7 @@
 
         if (route.engine === 'combined') {
           add('Start fast path', 'afterglow/combined.html?run=1', 'primary');
-          add('Fast path options', 'afterglow/combined.html', 'secondary');
+          add('Fast path options', 'afterglow/combined.html?menu=1', 'secondary');
           add('Proven Afterglow', 'afterglow/index.html', 'small');
           add('Primitive self-test', 'primitive-test.html', 'small');
           add('Diagnostics', 'diag.html', 'small');

@@ -16,6 +16,7 @@ Examples:
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import socket
 import ssl
@@ -85,7 +86,8 @@ class Handler(SimpleHTTPRequestHandler):
         debug = query.get("debug", ["0"])[0] == "1"
 
         if console == 4 and major == 14 and minor in (0, 2):
-            return "/afterglow/combined.html?run=1" + ("&debug=1" if debug else "")
+            suffix = "&debug=1" if debug else ""
+            return f"/afterglow/combined.html?run=1{suffix}&v={int(time.time())}"
 
         if console == 4 and 12 <= major <= 13:
             return "/afterglow/index.html"
@@ -123,15 +125,41 @@ class Handler(SimpleHTTPRequestHandler):
         super().do_GET()
 
     def do_POST(self) -> None:
-        # The fast-path page posts its on-screen log here so a failure on the
-        # console can be read from the host terminal. Same origin only.
-        if self.path.split("?", 1)[0] == "/log":
+        path = self.path.split("?", 1)[0]
+
+        def read_body() -> str:
             try:
                 length = int(self.headers.get("Content-Length", "0") or 0)
             except ValueError:
                 length = 0
+            return self.rfile.read(min(length, 65536)).decode("utf-8", "replace")
 
-            body = self.rfile.read(min(length, 65536)).decode("utf-8", "replace")
+        # One line per completed run: the fast path posts this even when the
+        # verbose /log stream is off. A static host will simply 404 it.
+        if path == "/event":
+            body = read_body()
+            try:
+                data = json.loads(body)
+            except json.JSONDecodeError:
+                data = {"raw": body}
+            print(
+                "[PS4] RUN "
+                f"ok={data.get('ok')} "
+                f"sec={data.get('sec')} "
+                f"fw={data.get('fw')} "
+                f"payload={data.get('payload')} "
+                f"note={data.get('note', '')}",
+                flush=True,
+            )
+            self.send_response(204)
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
+
+        # The fast-path page posts its on-screen log here so a failure on the
+        # console can be read from the host terminal. Same origin only.
+        if path == "/log":
+            body = read_body()
             for line in body.splitlines():
                 sys.stdout.write(f"[PS4] {line}\n")
             sys.stdout.flush()

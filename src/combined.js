@@ -9,6 +9,9 @@
   'use strict';
 
   const PAYLOAD_KEY = 'wobkot.fast.payload';
+  const HISTORY_KEY = 'wobkot.fast.history';
+  const ATTEMPT_KEY = 'wobkot.fast.kernelAttempted';
+  const BUILD = '4';
 
   const state = {
     busy: false,
@@ -17,6 +20,7 @@
     started: 0,
     timer: null,
     step: null,
+    fw: '',
     kernelTouched: false,
     unsafe: false,
     ctx: null,
@@ -107,10 +111,14 @@
     if (button) button.textContent = show ? 'hide log' : 'show log';
   }
 
+  function withVersion(src) {
+    return src + (src.indexOf('?') === -1 ? '?' : '&') + 'v=' + BUILD;
+  }
+
   function loadScript(src, type) {
     return new Promise((resolve, reject) => {
       const script = document.createElement('script');
-      script.src = src;
+      script.src = withVersion(src);
       if (type) script.type = type;
       script.onload = () => resolve();
       script.onerror = () => reject(new Error(`Failed to load ${src}`));
@@ -151,6 +159,84 @@
   function rememberPayload() {
     try {
       localStorage.setItem(PAYLOAD_KEY, selectedPayload());
+    } catch (err) {
+      // ignore
+    }
+  }
+
+  function readHistory() {
+    try {
+      const value = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+      return Array.isArray(value) ? value : [];
+    } catch (err) {
+      return [];
+    }
+  }
+
+  function renderHistory() {
+    const node = el('history');
+    if (!node) return;
+
+    const history = readHistory();
+    if (!history.length) {
+      node.textContent = '';
+      return;
+    }
+
+    node.textContent =
+      'last runs: ' +
+      history
+        .slice(0, 8)
+        .map((entry) => `${entry.sec}s ${entry.ok ? 'ok' : 'fail'}`)
+        .join('  ·  ');
+  }
+
+  function reportRun(entry) {
+    try {
+      fetch('/event', {
+        method: 'POST',
+        body: JSON.stringify(entry),
+        keepalive: true,
+      }).catch(() => {});
+    } catch (err) {
+      // static hosts have no /event
+    }
+  }
+
+  function recordRun(ok, note) {
+    const seconds = state.started ? ((performance.now() - state.started) / 1000).toFixed(1) : '';
+    const entry = {
+      sec: seconds,
+      ok,
+      fw: state.fw,
+      payload: selectedPayload(),
+      note: (note || '').slice(0, 160),
+      t: Date.now(),
+    };
+
+    try {
+      const history = readHistory();
+      history.unshift(entry);
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, 12)));
+    } catch (err) {
+      // ignore storage failures
+    }
+
+    renderHistory();
+    reportRun(entry);
+  }
+
+  function kernelAttempted() {
+    try {
+      return sessionStorage.getItem(ATTEMPT_KEY) === '1';
+    } catch (err) {
+      return false;
+    }
+  }
+
+  function markKernelAttempted() {
+    try {
+      sessionStorage.setItem(ATTEMPT_KEY, '1');
     } catch (err) {
       // ignore
     }
@@ -206,6 +292,8 @@
       setButtons(['retry', 'fallback', 'menu']);
       setStep(state.step || 'webkit', 'fail');
     }
+
+    recordRun(false, message);
   }
 
   async function run() {
@@ -238,6 +326,7 @@
       await loadScript('../src/afterglow_host.js');
 
       version.init();
+      state.fw = version.key;
       setText('fw', 'PS4 ' + version.key);
 
       const route = routeFor(version.console, version.major, version.minor);
@@ -313,6 +402,7 @@
         if (!probe.ok) throw new Error(`Afterglow probe refused: ${probe.reasons.join('; ')}`);
       }
 
+      markKernelAttempted();
       const iface = await Afterglow.runAfterglow(state.ctx, { tries: 4 });
       if (!iface) throw new Error('Afterglow did not return a kernel interface');
 
@@ -343,6 +433,7 @@
       setHeadline('Jailbroken', 'done');
       setButtons(['menu']);
       showLog(false);
+      recordRun(true, '');
       globalThis.afterglow_iface = iface;
     } catch (err) {
       state.kernelTouched = state.kernelTouched || (state.ctx && state.ctx.kernel_touched);
@@ -366,20 +457,14 @@
 
   function boot() {
     const params = query();
-    state.armed = params.get('run') === '1';
+    const manual =
+      params.get('menu') === '1' ||
+      params.get('run') === '0' ||
+      params.get('stop') === '1';
 
-    // The server 302s / straight to this page with run=1, and the console
-    // browser does not always send a referrer for that redirect. Arm on the
-    // flag alone, then remove it from the URL so a restored session comes
-    // back without the flag and cannot fire unattended.
-    if (state.armed) {
-      try {
-        const keep = params.get('debug') === '1' ? '?debug=1' : '';
-        history.replaceState(null, '', location.pathname + keep);
-      } catch (err) {
-        // history can be unavailable; the run still proceeds
-      }
-    }
+    // Auto-start is the default. The one-attempt guard below is what prevents
+    // a restored page from firing a second kernel attempt in the same session.
+    state.armed = !manual;
 
     restorePayload();
 
@@ -404,6 +489,18 @@
 
     setText('fw', 'PS4');
     showLog(false);
+    renderHistory();
+
+    if (kernelAttempted() && params.get('force') !== '1') {
+      setHeadline('Reboot required', 'fail');
+      setStatus(
+        'A kernel attempt already happened in this browser session. Reboot the console before another run.',
+        'fail',
+      );
+      setButtons(['menu']);
+      resetSteps();
+      return;
+    }
 
     if (state.armed) run();
     else ready();

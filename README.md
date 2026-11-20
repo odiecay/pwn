@@ -55,15 +55,46 @@ PS5                 Wobkot PS5 chain (upstream support)
    `localStorage`. To pick ps4-hen or no payload, open `?menu=1` on the hub,
    then **Fast path options**.
 
-Confirmed on a retail PS4 14.02: the optimized fast path completed in **3.7 s**
-end to end, including Wobkot's ARW/ROP, the 14.02 WebKit gadget and pivot
-checks, Afterglow's kernel stage and the GoldHEN payload. The remaining time is
-Afterglow's kernel exploit; the browser primitive and the bulk payload copy are
-the parts this build makes fast.
+After a kernel attempt, the run page shows **Reboot required**. Cold boot the
+console before another attempt; this is what keeps a failed attempt from
+compounding into a crash. The only exception is an advanced `?force=1`, which
+you should not need.
+
+Confirmed on a retail PS4 14.02: the stable fast path completed in **4.0 s**
+with the original Wobkot ARW loop, the bulk payload copy and prefetch. A 3.7 s
+run used a rewritten ARW spray that was not stable across attempts; that rewrite
+has been reverted. The remaining time is Afterglow's kernel exploit.
+
+The run page records the last attempts locally and `host.py` prints one
+`[PS4] RUN ok=... sec=...` line per completed run. The page also allows only one
+kernel attempt per browser session: after an attempt it shows **Reboot
+required** instead of firing again.
 
 If the fast path stops at validation, close and reopen the browser before
 retrying, or use **Proven Afterglow**. If the log says the handles are
 **NOT defused**, do not close the page; cold boot the console.
+
+## Hosting on GitHub Pages
+
+The page is static. `host.py` is a convenience server: it adds the server-side
+302, no-cache headers and `/event` logging. GitHub Pages can host the same
+files; the client-side hub still routes by user agent.
+
+1. Create a public repository and push this folder to `main`.
+2. `.nojekyll` at the root keeps GitHub Pages from processing the files.
+3. Settings -> Pages -> Deploy from a branch -> `main` / root.
+4. Open `https://<user>.github.io/<repo>/` on the PS4.
+5. If the PS4 browser has TLS or caching trouble, use the local `host.py`
+   instead. It is also the only version with server-side 302 and run logging.
+6. `localhost.pem` is a local self-signed key. It is git-ignored and must not be
+   pushed to a public repo; HTTP is the default.
+7. Keep the license notices: Wobkot is MIT, Afterglow is AGPL-3.0, and the
+   payloads have their own terms.
+
+On a static host, `/event` and `/log` do not exist; the page catches those
+failures. The root link and the combined script use cache-busting query strings
+so the console does not keep serving an old page. If you land on an old tab
+after an update, go to the repository root URL rather than reusing the tab.
 
 ## What the fast path does
 
