@@ -11,7 +11,7 @@
   const PAYLOAD_KEY = 'wobkot.fast.payload';
   const HISTORY_KEY = 'wobkot.fast.history';
   const ATTEMPT_KEY = 'wobkot.fast.kernelAttempted';
-  const BUILD = '11';
+  const BUILD = '13';
 
   const state = {
     busy: false,
@@ -54,6 +54,26 @@
     if (!node) return;
     node.textContent = text || '';
     node.style.display = text ? 'block' : 'none';
+  }
+
+  function setIcon(status) {
+    const node = el('icon');
+    if (node) node.className = 'icon ' + status;
+  }
+
+  function showDetails(force) {
+    const node = el('details');
+    const button = el('toggle-details');
+    if (!node) return;
+
+    const show = force === undefined ? node.style.display === 'none' : force;
+    node.style.display = show ? 'block' : 'none';
+    if (button) button.textContent = show ? 'Hide details' : 'Details';
+  }
+
+  function updatePayloadSummary() {
+    const payload = selectedPayload();
+    setText('payload-name', payload === 'goldhen' ? 'GoldHEN' : payload === 'hen' ? 'ps4-hen' : 'none');
   }
 
   function setButtons(visible) {
@@ -148,12 +168,14 @@
   function restorePayload() {
     try {
       const saved = localStorage.getItem(PAYLOAD_KEY);
-      if (!saved) return;
-      const radio = document.querySelector(`input[name="payload"][value="${saved}"]`);
-      if (radio) radio.checked = true;
+      if (saved) {
+        const radio = document.querySelector(`input[name="payload"][value="${saved}"]`);
+        if (radio) radio.checked = true;
+      }
     } catch (err) {
       // storage can be unavailable; GoldHEN stays selected
     }
+    updatePayloadSummary();
   }
 
   function rememberPayload() {
@@ -162,6 +184,7 @@
     } catch (err) {
       // ignore
     }
+    updatePayloadSummary();
   }
 
   function readHistory() {
@@ -273,6 +296,7 @@
       if (err && err.stack) logger.debug(err.stack);
     }
 
+    setIcon('fail');
     setHeadline('Stopped', 'fail');
     setError(message);
     showLog(false);
@@ -304,7 +328,9 @@
     state.unsafe = false;
     state.ctx = null;
     setError('');
-    setHeadline('Running', 'running');
+    showDetails(false);
+    setIcon('running');
+    setHeadline('Running', '');
     setStatus('Starting...', 'running');
     setButtons([]);
     resetSteps();
@@ -416,6 +442,7 @@
 
       state.done = true;
       stopTimer();
+      setTiming();
       setStep('kernel', 'done');
       setBar(90);
 
@@ -423,13 +450,14 @@
         const label = selectedPayload() === 'hen' ? 'ps4-hen' : 'GoldHEN';
         setStep('payload', 'done');
         setBar(100);
-        setStatus(`Jailbroken in ${((performance.now() - state.started) / 1000).toFixed(1)} s. ${label} started.`, 'done');
+        setStatus(`${label} started.`, 'done');
       } else {
         setStep('payload', 'skip');
         setBar(100);
-        setStatus(`Jailbroken in ${((performance.now() - state.started) / 1000).toFixed(1)} s. Kernel open; no payload selected.`, 'done');
+        setStatus('Kernel open; no payload selected.', 'done');
       }
 
+      setIcon('done');
       setHeadline('Jailbroken', 'done');
       setButtons(['menu']);
       showLog(false);
@@ -449,6 +477,7 @@
   }
 
   function ready() {
+    setIcon('idle');
     setHeadline('Ready', '');
     setStatus('Press Start.', 'idle');
     setButtons(['start', 'fallback', 'menu']);
@@ -483,6 +512,18 @@
       showLog();
     });
 
+    el('toggle-details').addEventListener('click', (event) => {
+      event.preventDefault();
+      showDetails();
+    });
+
+    el('change-payload').addEventListener('click', (event) => {
+      event.preventDefault();
+      showDetails(true);
+      const details = el('details');
+      if (details) details.scrollIntoView({ block: 'nearest' });
+    });
+
     for (const radio of document.querySelectorAll('input[name="payload"]')) {
       radio.addEventListener('change', rememberPayload);
     }
@@ -490,14 +531,17 @@
     setText('fw', 'PS4');
     const uaFirmware = /PlayStation\s+4[/ ](\d+\.\d+)/.exec(navigator.userAgent);
     if (uaFirmware) setText('fw', 'PS4 ' + uaFirmware[1]);
+    showDetails(false);
     showLog(false);
+    updatePayloadSummary();
     renderHistory();
 
     if (kernelAttempted() && params.get('force') !== '1') {
-      setHeadline('Reboot required', 'fail');
+      setIcon('warn');
+      setHeadline('Reboot required', 'warn');
       setStatus(
         'A kernel attempt already happened in this browser session. Reboot the console before another run.',
-        'fail',
+        'warn',
       );
       setButtons(['menu']);
       resetSteps();

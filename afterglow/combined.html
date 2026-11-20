@@ -8,7 +8,7 @@
     <title>Wobkot + Afterglow - PS4 14.02</title>
     <style>
       :root {
-        --bg: #0a0c0f;
+        --bg: #090b0e;
         --panel: #0f1318;
         --panel2: #121820;
         --line: #1e2833;
@@ -29,21 +29,21 @@
       body {
         margin: 0;
         min-height: 100%;
-        background: radial-gradient(1200px 600px at 50% -10%, #12202c 0%, var(--bg) 55%);
+        background: radial-gradient(1100px 600px at 50% -10%, #12202c 0%, var(--bg) 55%);
         color: var(--fg);
         font: 16px/1.45 var(--sans);
       }
       .wrap {
-        max-width: 920px;
+        max-width: 820px;
         margin: 0 auto;
-        padding: 20px 16px 40px;
+        padding: 24px 16px 40px;
       }
       .top {
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 12px;
-        padding: 6px 2px 18px;
+        padding: 4px 2px 18px;
       }
       .brand {
         color: var(--bright);
@@ -66,30 +66,102 @@
       .hero {
         border: 1px solid var(--line);
         background: linear-gradient(180deg, var(--panel2), var(--panel));
-        border-radius: 14px;
-        padding: 24px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+        border-radius: 16px;
+        padding: 36px 26px 28px;
+        text-align: center;
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.4);
+      }
+      .icon {
+        position: relative;
+        width: 96px;
+        height: 96px;
+        margin: 0 auto 18px;
+        border: 3px solid var(--line);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--dim);
+        font-size: 52px;
+        line-height: 1;
+        font-weight: 800;
+        background: #0a0e12;
+      }
+      .icon .ring {
+        display: none;
+        position: absolute;
+        inset: -3px;
+        border: 3px solid var(--line);
+        border-top-color: var(--accent);
+        border-radius: 50%;
+        animation: spin 0.9s linear infinite;
+      }
+      .icon.running .ring {
+        display: block;
+      }
+      .icon .glyph {
+        display: none;
+      }
+      .icon.running .glyph.play,
+      .icon.running .glyph.check,
+      .icon.running .glyph.x,
+      .icon.running .glyph.bang {
+        display: none;
+      }
+      .icon.idle .glyph.play {
+        display: block;
+        font-size: 36px;
+        color: var(--dim);
+      }
+      .icon.done {
+        border-color: #2f6b4d;
+        background: #0c2116;
+        color: var(--ok);
+      }
+      .icon.done .glyph.check {
+        display: block;
+      }
+      .icon.fail {
+        border-color: #6a2f2f;
+        background: #1a0f0f;
+        color: var(--bad);
+      }
+      .icon.fail .glyph.x {
+        display: block;
+      }
+      .icon.warn {
+        border-color: #6a5a2f;
+        background: #1c1710;
+        color: var(--warn);
+      }
+      .icon.warn .glyph.bang {
+        display: block;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
       }
       h1 {
         margin: 0 0 6px;
-        font-size: clamp(24px, 4vw, 34px);
-        line-height: 1.1;
+        font-size: clamp(28px, 4vw, 38px);
+        line-height: 1.05;
         color: var(--bright);
         letter-spacing: -0.01em;
-      }
-      h1.fail {
-        color: var(--bad);
       }
       h1.done {
         color: var(--ok);
       }
-      h1.running {
-        color: var(--accent);
+      h1.fail {
+        color: var(--bad);
+      }
+      h1.warn {
+        color: var(--warn);
       }
       #status {
         min-height: 24px;
         color: var(--dim);
-        font-size: 15px;
+        font-size: 16px;
       }
       #status.running {
         color: var(--accent);
@@ -100,28 +172,93 @@
       #status.fail {
         color: var(--bad);
       }
-      .meta {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        margin-top: 16px;
-        color: var(--dim);
-        font: 12px/1 var(--mono);
+      #status.warn {
+        color: var(--warn);
       }
-      .history {
-        margin-top: 10px;
-        min-height: 16px;
+      #timing {
+        min-height: 18px;
+        margin-top: 4px;
+        color: #5f6b79;
+        font: 13px/1.2 var(--mono);
+      }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 20px;
+      }
+      .btn {
+        display: inline-block;
+        border: 1px solid #2b3a4b;
+        background: #151f2a;
+        color: var(--bright);
+        padding: 12px 18px;
+        border-radius: 9px;
+        font: 15px/1 var(--sans);
+        cursor: pointer;
+        text-decoration: none;
+      }
+      .btn:hover {
+        background: #1b2835;
+      }
+      .btn.primary {
+        border-color: #36735a;
+        background: #123426;
+        color: #c3f2d7;
+      }
+      .btn.ghost {
+        background: transparent;
+        color: var(--dim);
+      }
+      .btn.small {
+        padding: 9px 13px;
+        font-size: 13px;
+      }
+      .payload-summary {
+        margin-top: 14px;
         color: #5f6b79;
         font: 12px/1.4 var(--mono);
+      }
+      .payload-summary b {
+        color: var(--dim);
+        font-weight: 600;
+      }
+      .payload-summary a {
+        color: var(--dim);
+      }
+      #error {
+        display: none;
+        margin: 16px auto 0;
+        max-width: 640px;
+        padding: 11px 14px;
+        border: 1px solid #6a2f2f;
+        background: #1a0f0f;
+        color: #ffc1ba;
+        border-radius: 9px;
+        font: 12px/1.45 var(--mono);
+        text-align: left;
+        white-space: pre-wrap;
         word-break: break-word;
+      }
+      #details {
+        display: none;
+        margin-top: 22px;
+        padding-top: 20px;
+        border-top: 1px solid var(--line);
+        text-align: left;
+      }
+      .muted {
+        color: var(--dim);
+        max-width: 70ch;
+        margin: 0 0 14px;
       }
       .steps {
         list-style: none;
         display: grid;
         grid-template-columns: repeat(4, 1fr);
         gap: 8px;
-        margin: 18px 0 0;
+        margin: 0 0 12px;
         padding: 0;
       }
       .steps li {
@@ -129,10 +266,9 @@
         background: #0c1116;
         color: var(--dim);
         border-radius: 9px;
-        padding: 10px 10px;
+        padding: 9px 10px;
         font-size: 12px;
         line-height: 1.25;
-        transition: border-color 0.2s, color 0.2s, background 0.2s;
       }
       .steps li strong {
         display: block;
@@ -161,7 +297,7 @@
       }
       .bar {
         height: 4px;
-        margin-top: 14px;
+        margin: 14px 0 18px;
         background: #0a0e12;
         border-radius: 999px;
         overflow: hidden;
@@ -173,48 +309,12 @@
         background: linear-gradient(90deg, #3a7fb0, #7fe0a8);
         transition: width 0.35s ease;
       }
-      .actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        margin-top: 20px;
-      }
-      .btn {
-        display: inline-block;
-        border: 1px solid #2b3a4b;
-        background: #151f2a;
-        color: var(--bright);
-        padding: 12px 16px;
-        border-radius: 8px;
-        font: 15px/1 var(--sans);
-        cursor: pointer;
-        text-decoration: none;
-      }
-      .btn:hover {
-        background: #1b2835;
-      }
-      .btn.primary {
-        border-color: #36735a;
-        background: #123426;
-        color: #c3f2d7;
-      }
-      .btn.danger {
-        border-color: #6a2f2f;
-        background: #241313;
-        color: #ffc1ba;
-      }
-      .btn.ghost {
-        background: transparent;
-        color: var(--dim);
-      }
       .payload {
         display: flex;
         flex-wrap: wrap;
         gap: 8px;
         align-items: center;
-        margin-top: 18px;
-        padding-top: 16px;
-        border-top: 1px solid var(--line);
+        margin: 0 0 12px;
         color: var(--dim);
         font-size: 13px;
       }
@@ -241,32 +341,27 @@
         color: var(--warn);
         font-size: 13px;
       }
-      #error {
-        display: none;
-        margin-top: 16px;
-        padding: 12px 14px;
-        border: 1px solid #6a2f2f;
-        background: #1a0f0f;
-        color: #ffc1ba;
-        border-radius: 9px;
-        font: 13px/1.45 var(--mono);
-        white-space: pre-wrap;
+      #history {
+        margin-top: 10px;
+        min-height: 16px;
+        color: #5f6b79;
+        font: 12px/1.4 var(--mono);
         word-break: break-word;
       }
       #log-wrap {
-        margin-top: 18px;
+        margin-top: 12px;
         display: none;
       }
       #console {
         width: 100%;
-        height: 40vh;
-        min-height: 220px;
+        height: 34vh;
+        min-height: 190px;
         margin: 0;
-        padding: 14px;
+        padding: 12px;
         overflow: auto;
         background: #07090c;
         border: 1px solid var(--line);
-        border-radius: 10px;
+        border-radius: 9px;
         color: #b8c2ce;
         font: 12px/1.45 var(--mono);
         white-space: pre-wrap;
@@ -278,7 +373,13 @@
         justify-content: space-between;
         color: #5f6b79;
         font-size: 12px;
-        margin-top: 18px;
+        margin-top: 16px;
+      }
+      .stack {
+        margin-top: 16px;
+        color: #5f6b79;
+        font: 12px/1.4 var(--mono);
+        text-align: center;
       }
       .foot a {
         color: var(--dim);
@@ -292,7 +393,7 @@
           padding: 12px 10px 28px;
         }
         .hero {
-          padding: 18px;
+          padding: 26px 16px 22px;
         }
         .steps {
           grid-template-columns: repeat(2, 1fr);
@@ -308,65 +409,84 @@
       </div>
 
       <section class="hero">
+        <div id="icon" class="icon running">
+          <div class="ring"></div>
+          <span class="glyph play">&#9654;</span>
+          <span class="glyph check">&#10003;</span>
+          <span class="glyph x">&#10005;</span>
+          <span class="glyph bang">!</span>
+        </div>
+
         <h1 id="headline">Wobkot + Afterglow</h1>
         <div id="status">Starting...</div>
-        <p class="muted" style="margin-top: 10px; max-width: 70ch">
-          PS4 14.00 - 14.02. Wobkot builds a read/write primitive in the browser
-          process; Afterglow runs the kernel exploit and starts a payload
-          (GoldHEN by default). Nothing is installed; reboot clears it.
-        </p>
-
-        <ol class="steps" id="progress">
-          <li id="step-webkit"><strong>1. Browser</strong>WebKit primitive</li>
-          <li id="step-validate"><strong>2. Check</strong>offsets + ROP</li>
-          <li id="step-kernel"><strong>3. Kernel</strong>Afterglow</li>
-          <li id="step-payload"><strong>4. Payload</strong>GoldHEN / ps4-hen</li>
-        </ol>
-
-        <div class="bar"><i id="bar"></i></div>
+        <div id="timing"></div>
 
         <div class="actions">
-          <button id="start" class="btn primary" type="button">Start</button>
+          <button id="start" class="btn primary" type="button" style="display: none">Start</button>
           <button id="retry" class="btn" type="button" style="display: none">Reload and retry</button>
-          <a id="fallback" class="btn" href="index.html" style="display: none">Afterglow instead</a>
+          <a id="fallback" class="btn" href="index.html" style="display: none">Afterglow</a>
           <a id="menu" class="btn ghost" href="../index.html?menu=1" style="display: none">Menu</a>
-          <button id="toggle-log" class="btn ghost" type="button">show log</button>
+          <button id="toggle-details" class="btn ghost" type="button">Details</button>
         </div>
 
-        <div class="payload">
-          <span>Payload</span>
-          <label><input type="radio" name="payload" value="goldhen" checked /><span>GoldHEN</span></label>
-          <label><input type="radio" name="payload" value="hen" /><span>ps4-hen</span></label>
-          <label><input type="radio" name="payload" value="none" /><span>none</span></label>
-          <span class="payload-note">none = kernel open, no enabler</span>
+        <div class="payload-summary">
+          Payload: <b id="payload-name">GoldHEN</b> &nbsp;
+          <a href="#" id="change-payload">change</a>
         </div>
-
-        <p class="note">
-          Close games and save first. This can crash or hang the console. One
-          kernel attempt per boot; reboot after a failure.
-        </p>
 
         <div id="error"></div>
-        <div id="log-wrap"><pre id="console"></pre></div>
+
+        <div id="details">
+          <p class="muted">
+            PS4 14.00 - 14.02. Wobkot builds a read/write primitive in the browser
+            process; Afterglow runs the kernel exploit and starts a payload
+            (GoldHEN by default). Nothing is installed; reboot clears it.
+          </p>
+
+          <ol class="steps" id="progress">
+            <li id="step-webkit"><strong>1. Browser</strong>WebKit primitive</li>
+            <li id="step-validate"><strong>2. Check</strong>offsets + ROP</li>
+            <li id="step-kernel"><strong>3. Kernel</strong>Afterglow</li>
+            <li id="step-payload"><strong>4. Payload</strong>GoldHEN / ps4-hen</li>
+          </ol>
+
+          <div class="bar"><i id="bar"></i></div>
+
+          <div class="payload">
+            <span>Payload</span>
+            <label><input type="radio" name="payload" value="goldhen" checked /><span>GoldHEN</span></label>
+            <label><input type="radio" name="payload" value="hen" /><span>ps4-hen</span></label>
+            <label><input type="radio" name="payload" value="none" /><span>none</span></label>
+            <span class="payload-note">none = kernel open, no enabler</span>
+          </div>
+
+          <p class="note">
+            Close games and save first. This can crash or hang the console. One
+            kernel attempt per boot; reboot after a failure.
+          </p>
+
+          <div id="history"></div>
+
+          <div class="actions" style="justify-content: flex-start; margin-top: 14px">
+            <button id="toggle-log" class="btn ghost small" type="button">Show log</button>
+          </div>
+          <div id="log-wrap"><pre id="console"></pre></div>
+        </div>
       </section>
 
-      <div class="meta">
-        <span>Wobkot primitive + Afterglow kernel</span>
-        <span id="timing"></span>
-      </div>
+      <div class="stack">Wobkot browser primitive &middot; Afterglow kernel exploit &middot; GoldHEN payload</div>
 
-      <div id="history" class="history"></div>
-
-      <div class="foot" id="foot">
+      <div class="foot">
         <span>Wobkot: MIT, ufm42 &nbsp; Afterglow: AGPL-3.0, well0nez</span>
         <span>
           <a href="index.html">Afterglow</a>
           &nbsp; <a href="../primitive-test.html">self-test</a>
-          &nbsp; <a href="../index.html?menu=1">Menu</a>
+          &nbsp; <a href="../index.html?menu=1">menu</a>
+          &nbsp; <a href="https://github.com/odiecay/pwn">source</a>
         </span>
       </div>
     </div>
 
-    <script src="../src/combined.js?v=11" defer></script>
+    <script src="../src/combined.js?v=13" defer></script>
   </body>
 </html>

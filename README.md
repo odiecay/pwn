@@ -26,9 +26,30 @@ PS5                 Wobkot PS5 chain (upstream support)
 
 ![Run page](screenshots/run-page.png)
 
+![Running](screenshots/run-running.png)
+
+![Jailbroken](screenshots/run-success.png)
+
 ![Self-test](screenshots/self-test.png)
 
 ![Diagnostics](screenshots/diagnostics.png)
+
+The running and success images are the same page at 1280x720; the success
+image shows the UI state, not a hardware capture.
+
+## UI references
+
+These public hosts were used as layout references only; no assets or code were
+copied from them:
+
+- GamerHack host: https://gamerhack.github.io/g2all/ - simple loading line and
+  one status area instead of a dashboard
+- psx8 PSPulse: https://github.com/psx8/psx8.github.io - host selector flow
+- Afterglow web host: https://github.com/well0nez/afterglow-web - the kernel
+  stage this build vendors
+
+The run page follows that pattern: one big spinner, one status line, then a
+green check or red X. The technical steps and log live behind **Details**.
 
 ## What changed from upstream Wobkot
 
