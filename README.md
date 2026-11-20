@@ -118,7 +118,8 @@ py tools/check.py
 `--apply` refuses to overwrite local changes unless `--force` is given.
 `afterglow/cache.appcache` must be regenerated after any edit inside
 `afterglow/`; `tools/manifest.py --write` does that in the same format as
-Afterglow's `make-manifest.sh`.
+Afterglow's `make-manifest.sh`. Use `--force` only when you intentionally
+changed a vendored file and want upstream to replace it.
 
 ### Wobkot `src/ps4/impl.js`
 
