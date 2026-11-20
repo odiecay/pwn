@@ -1,0 +1,7 @@
+# Keep the vendored Afterglow bytes identical to upstream: its cache manifest
+# hashes the files, so a checkout must not rewrite LF to CRLF.
+* text=auto eol=lf
+
+*.bin binary
+*.png binary
+*.pem binary
