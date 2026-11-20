@@ -93,6 +93,7 @@ function afterglow_check_arw() {
 
   const at = u8.buffer.data();
   if (at.eq(0)) throw new Error('ArrayBuffer backing store is zero');
+  if (at.hi >= 0x80000000) throw new Error(`ArrayBuffer backing store ${at} is not userland`);
 
   if (arw.view(at).getUint8(0) !== 0x41) {
     throw new Error('ARW read did not return the ArrayBuffer contents');
