@@ -55,10 +55,11 @@ PS5                 Wobkot PS5 chain (upstream support)
    `localStorage`. To pick ps4-hen or no payload, open `?menu=1` on the hub,
    then **Fast path options**.
 
-Confirmed on a retail PS4 14.02: Wobkot's ARW/ROP, the 14.02 WebKit gadget
-checks, the ROP pivot, Afterglow's kernel stage and the GoldHEN payload all
-completed. The kernel stage took about 4.7 s in that run; the WebKit primitive
-is the part Wobkot makes fast.
+Confirmed on a retail PS4 14.02: the optimized fast path completed in **3.7 s**
+end to end, including Wobkot's ARW/ROP, the 14.02 WebKit gadget and pivot
+checks, Afterglow's kernel stage and the GoldHEN payload. The remaining time is
+Afterglow's kernel exploit; the browser primitive and the bulk payload copy are
+the parts this build makes fast.
 
 If the fast path stops at validation, close and reopen the browser before
 retrying, or use **Proven Afterglow**. If the log says the handles are
@@ -101,8 +102,10 @@ src/strategy.js             one firmware -> engine routing table
 src/combined.js             fast path loader
 src/afterglow_host.js       Wobkot -> Afterglow adapter + validation
 src/afterglow_bridge.js     ES-module bridge
+src/afterglow_fast.js       generated fast module (bulk payload copy)
 src/main.js                 legacy Wobkot entry point
 tools/check.py              static checks
+tools/build_fast_engine.py  regenerate src/afterglow_fast.js
 tools/manifest.py           rebuild/verify afterglow/cache.appcache
 tools/update_afterglow.py   check/update the vendored Afterglow engine
 ```
@@ -130,6 +133,8 @@ py tools/check.py
 `afterglow/`; `tools/manifest.py --write` does that in the same format as
 Afterglow's `make-manifest.sh`. Use `--force` only when you intentionally
 changed a vendored file and want upstream to replace it.
+`tools/update_afterglow.py --apply` also regenerates `src/afterglow_fast.js`;
+if you change the generator, run `py tools/build_fast_engine.py --write`.
 
 ### Wobkot `src/ps4/impl.js`
 
