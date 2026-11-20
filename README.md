@@ -111,10 +111,9 @@ reverted. The remaining time is Afterglow's kernel exploit.
 On 14.02 the browser can show **"there is not enough free system memory"**
 during the browser stage. This is Wobkot's spray reaching the browser's heap
 limit; press **OK** and the spray continues. The run still completes. The page
-keeps its own heap small (the live log is buffered off-DOM and the payload is
-prefetched through the HTTP cache, not read into `ArrayBuffer`s) so it does not
-add pressure at that point. Reloading while the dialog is up is what breaks the
-run.
+keeps its own heap small: the live log is buffered off-DOM, and the payload is
+prefetched only after the spray, when its temporary buffer no longer competes
+with the primitive. Reloading while the dialog is up is what breaks the run.
 
 The run page records the last attempts locally and `host.py` prints one
 `[PS4] RUN ok=... sec=...` line per completed run. Newer runs add a phase split:

@@ -12,7 +12,7 @@
   const HISTORY_KEY = 'wobkot.fast.history';
   const ATTEMPT_KEY = 'wobkot.fast.kernelAttempted';
   const ALREADY_KEY = 'wobkot.fast.alreadyJailbroken';
-  const BUILD = '19';
+  const BUILD = '20';
 
   const state = {
     busy: false,
@@ -181,6 +181,19 @@
       link.rel = 'prefetch';
       link.href = url;
       document.head.appendChild(link);
+    } catch (err) {
+      // prefetch is an optimisation, never a failure
+    }
+  }
+
+  function prefetch(url) {
+    // Warm the HTTP cache for the payload files. The body is read so the
+    // browser actually downloads it, then dropped. This runs after the heap
+    // spray, so the temporary buffer is not competing with the primitive.
+    try {
+      fetch(url, { cache: 'force-cache' })
+        .then((res) => (res.ok ? res.arrayBuffer() : null))
+        .catch(() => {});
     } catch (err) {
       // prefetch is an optimisation, never a failure
     }
@@ -451,16 +464,11 @@
         throw new Error(`This page is for PS4 14.00-14.02. Detected ${version}.`);
       }
 
-      // Warm the kernel module and the files it will ask for through the HTTP
-      // cache, not through JS buffers. The old prefetch read the bodies into
-      // ArrayBuffers and held them across the heap spray, which is exactly the
-      // wrong time to add memory pressure.
+      // Warm the kernel module through the HTTP cache. The payload files are
+      // warmed after the heap spray, when the primitive is done, so their
+      // temporary buffers are not competing with the spray.
       prefetchLink(withVersion('../src/afterglow_bridge.js'));
       prefetchLink('../src/afterglow_fast.js');
-      const payload_choice = selectedPayload();
-      if (payload_choice === 'goldhen') prefetchLink('goldhen.bin');
-      else if (payload_choice === 'hen') prefetchLink('hen.bin');
-      prefetchLink('patchset-' + version.key.replace('.', '') + '.bin');
 
       state.step = 'webkit';
       setStep('webkit', 'active');
@@ -496,6 +504,11 @@
       state.step = 'kernel';
       setStep('kernel', 'active');
       setStatus('Running kernel exploit...', 'running');
+
+      const payload_choice = selectedPayload();
+      if (payload_choice === 'goldhen') prefetch('goldhen.bin');
+      else if (payload_choice === 'hen') prefetch('hen.bin');
+      prefetch('patchset-' + version.key.replace('.', '') + '.bin');
 
       await loadScript('../src/afterglow_bridge.js', 'module');
 
