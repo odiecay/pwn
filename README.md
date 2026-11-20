@@ -62,16 +62,17 @@ retrying, or use **Proven Afterglow**. If the log says the handles are
 
 1. Loads Wobkot's `src/misc.js`, `src/ps4/impl.js` and `src/userland.js`.
 2. Builds the Wobkot WebKit primitive (ARW + ROP).
-3. Rebuilds the WebKit base and validates the critical gadgets byte for byte.
-4. Rebuilds the libc/libkernel bases from the import table and checks them
+3. Exercises the ARW through a real ArrayBuffer backing store.
+4. Rebuilds the WebKit base and validates the critical gadgets byte for byte.
+5. Rebuilds the libc/libkernel bases from the import table and checks them
    before `rop.init()` scans libkernel.
-5. Runs `rop.init()`, compares the resulting bases to the precheck, and calls
+6. Runs `rop.init()`, compares the resulting bases to the precheck, and calls
    `getpid()` as the first ROP execution.
-6. Loads Afterglow through `src/afterglow_bridge.js`, gives it a small adapter
+7. Loads Afterglow through `src/afterglow_bridge.js`, gives it a small adapter
    (`sc`, `bufAddr`, `p`, `keepAlive`), and runs its kernel stage.
-7. Afterglow loads `goldhen.bin`, `hen.bin`, or no payload.
+8. Afterglow loads `goldhen.bin`, `hen.bin`, or no payload.
 
-No kernel address is written until steps 3-5 pass. A failed validation is a
+No kernel address is written until steps 3-6 pass. A failed validation is a
 normal page error, not a kernel crash. The main remaining risk is the WebKit
 ROP pivot itself; that is why the proven Afterglow chain remains one click
 away.
