@@ -24,7 +24,9 @@ PS5                 Wobkot PS5 chain (upstream support)
 - Vendored Afterglow under `afterglow/` for PS4 12.00-14.02, with its own
   `cache.appcache`, payloads and patch sets.
 - Added the fast path (`afterglow/combined.html` + `src/combined.js`) that
-  runs Wobkot's WebKit primitive and Afterglow's kernel stage.
+  runs Wobkot's WebKit primitive and Afterglow's kernel stage. It starts
+  immediately from the root URL, shows four progress stages, hides the full log
+  behind a toggle, and falls back to the proven engine on a safe miss.
 - Added the adapter (`src/afterglow_host.js`) with byte-level gadget checks,
   base prechecks and a ROP pivot precheck.
 - Added the safe self-test (`primitive-test.html`), diagnostics (`diag.html`),
@@ -47,12 +49,16 @@ PS5                 Wobkot PS5 chain (upstream support)
    On Windows you can also double-click `start.cmd`. The server prints the
    URL(s) to open, for example `http://192.168.1.50:8000/`.
 3. On the console, open the browser and go to that URL.
-4. The hub detects the console and firmware. On 14.02 the recommended action is
-   **Start fast path (GoldHEN)**. It counts down, then runs.
-5. On the fast-path page, choose **GoldHEN** (recommended), **ps4-hen**, or
-   **no payload**, then **start**. If you want to prove the browser stage
-   first, open **Primitive self-test** from the hub; it does not touch the
-   kernel.
+4. The hub detects the console and, on PS4 14.x, redirects straight to the fast
+   path. There is no countdown: the fast path starts immediately.
+5. GoldHEN is the default payload and the choice is remembered in
+   `localStorage`. To pick ps4-hen or no payload, open `?menu=1` on the hub,
+   then **Fast path options**.
+
+Confirmed on a retail PS4 14.02: Wobkot's ARW/ROP, the 14.02 WebKit gadget
+checks, the ROP pivot, Afterglow's kernel stage and the GoldHEN payload all
+completed. The kernel stage took about 4.7 s in that run; the WebKit primitive
+is the part Wobkot makes fast.
 
 If the fast path stops at validation, close and reopen the browser before
 retrying, or use **Proven Afterglow**. If the log says the handles are
@@ -60,22 +66,25 @@ retrying, or use **Proven Afterglow**. If the log says the handles are
 
 ## What the fast path does
 
-1. Loads Wobkot's `src/misc.js`, `src/ps4/impl.js` and `src/userland.js`.
+1. Loads the shared logger first, then loads the routing table, Wobkot's
+   `misc.js`/`ps4/impl.js`/`userland.js`, the adapter and the Afterglow module
+   in parallel.
 2. Builds the Wobkot WebKit primitive (ARW + ROP).
 3. Exercises the ARW through a real ArrayBuffer backing store.
 4. Rebuilds the WebKit base and validates the critical gadgets byte for byte.
+   The `pop r8` / `pop r9` checks accept both the `41` and `47` REX encodings.
 5. Rebuilds the libc/libkernel bases from the import table and checks them
    before `rop.init()` scans libkernel.
 6. Runs `rop.init()`, compares the resulting bases to the precheck, and calls
-   `getpid()` as the first ROP execution.
+   `getpid()` as the first ROP execution. The frame check treats `+0x10` as an
+   opaque saved slot; on 14.02 it is a JavaScript value, not a frame pointer.
 7. Loads Afterglow through `src/afterglow_bridge.js`, gives it a small adapter
    (`sc`, `bufAddr`, `p`, `keepAlive`), and runs its kernel stage.
 8. Afterglow loads `goldhen.bin`, `hen.bin`, or no payload.
 
 No kernel address is written until steps 3-6 pass. A failed validation is a
 normal page error, not a kernel crash. The main remaining risk is the WebKit
-ROP pivot itself; that is why the proven Afterglow chain remains one click
-away.
+ROP pivot itself; that is why the proven Afterglow chain remains one tap away.
 
 ## Files
 
@@ -175,7 +184,7 @@ engine no longer matches upstream; rerun `py tools/update_afterglow.py
 | `handles are NOT defused` | Do not close the browser. Cold boot the console; closing the browser is the process exit that hangs. |
 | Console froze after a failed run | Hold the power button until off, then start again. |
 
-## Self-test and diagnostics
+## Self-test, diagnostics and debug
 
 - `primitive-test.html` builds only the WebKit primitive, validates gadgets and
   bases, and calls `getpid()`. It does not write the kernel. Run it on 14.02 to
@@ -183,6 +192,11 @@ engine no longer matches upstream; rerun `py tools/update_afterglow.py
   browser and reopen it before running the real chain.
 - `diag.html` fetches every required file and shows status, MIME type, size and
   `Cache-Control`. A 404 or `text/plain` for a `.js` file is a server problem.
+- Add `?debug=1` to the fast-path URL to enable verbose lines and POST the log
+  to `host.py` (`[PS4] ...` in the server terminal). Without it, the page keeps
+  the log local and shows only the four stages and the result.
+- The fast-path page has a **show log** button whenever you need the full
+  Wobkot/Afterglow trace. On failure it opens automatically.
 
 ## Safety
 

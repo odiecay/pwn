@@ -16,6 +16,7 @@ Examples:
 from __future__ import annotations
 
 import argparse
+import re
 import socket
 import ssl
 import sys
@@ -26,6 +27,7 @@ import urllib.request
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import parse_qs, urlsplit
 
 ROOT = Path(__file__).resolve().parent
 DEFAULT_CERT = ROOT / "localhost.pem"
@@ -35,6 +37,8 @@ CACHEABLE_SUFFIXES = (".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico")
 
 class Handler(SimpleHTTPRequestHandler):
     """Static handler with the headers the console browser needs."""
+
+    protocol_version = "HTTP/1.1"
 
     extensions_map = {
         **SimpleHTTPRequestHandler.extensions_map,
@@ -67,6 +71,77 @@ class Handler(SimpleHTTPRequestHandler):
             return
         stamp = time.strftime("%H:%M:%S")
         sys.stderr.write(f"[{stamp}] {self.address_string()} {fmt % args}\n")
+
+    def console_redirect(self, query):
+        """Go straight from / to the recommended engine for this console."""
+        ua = self.headers.get("User-Agent", "")
+        match = re.search(r"PlayStation\s+(\d+)[/ ](\d+)\.(\d+)", ua)
+        if not match:
+            return None
+
+        console = int(match.group(1))
+        major = int(match.group(2))
+        minor = int(match.group(3), 16)
+        debug = query.get("debug", ["0"])[0] == "1"
+
+        if console == 4 and major == 14 and minor in (0, 2):
+            return "/afterglow/combined.html?run=1" + ("&debug=1" if debug else "")
+
+        if console == 4 and 12 <= major <= 13:
+            return "/afterglow/index.html"
+
+        if (console == 4 and 9 <= major <= 11) or console == 5:
+            return "/legacy.html"
+
+        return None
+
+    def do_GET(self) -> None:
+        parts = urlsplit(self.path)
+        path = parts.path
+
+        # A local monitor polls this every 30 s; answer it instead of a 404.
+        if path == "/health":
+            body = b"ok"
+            self.send_response(200)
+            self.send_header("Content-Type", "text/plain")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+
+        if path in ("/", "/index.html"):
+            query = parse_qs(parts.query)
+            if query.get("menu", ["0"])[0] != "1":
+                target = self.console_redirect(query)
+                if target:
+                    self.send_response(302)
+                    self.send_header("Location", target)
+                    self.send_header("Content-Length", "0")
+                    self.end_headers()
+                    return
+
+        super().do_GET()
+
+    def do_POST(self) -> None:
+        # The fast-path page posts its on-screen log here so a failure on the
+        # console can be read from the host terminal. Same origin only.
+        if self.path.split("?", 1)[0] == "/log":
+            try:
+                length = int(self.headers.get("Content-Length", "0") or 0)
+            except ValueError:
+                length = 0
+
+            body = self.rfile.read(min(length, 65536)).decode("utf-8", "replace")
+            for line in body.splitlines():
+                sys.stdout.write(f"[PS4] {line}\n")
+            sys.stdout.flush()
+
+            self.send_response(204)
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
+
+        self.send_error(404)
 
 
 def lan_ips() -> list[str]:

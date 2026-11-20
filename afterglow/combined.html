@@ -3,21 +3,20 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Wobkot x Afterglow - fast path</title>
+    <title>Wobkot x Afterglow</title>
     <style>
       :root {
-        --bg: #0b0d10;
-        --panel: #0e1116;
-        --sunk: #11151b;
-        --line: #1e2732;
-        --fg: #c8ced8;
-        --bright: #e6ebf2;
-        --dim: #7c8798;
-        --faint: #4d5765;
-        --ok: #7fd0a0;
-        --bad: #d08a7f;
-        --warn: #d8c07f;
-        --accent: #9fb3d0;
+        --bg: #0a0c0f;
+        --panel: #0f1318;
+        --panel2: #121820;
+        --line: #1e2833;
+        --fg: #c9d1dc;
+        --bright: #eef3f9;
+        --dim: #7d8a9a;
+        --ok: #7fe0a8;
+        --bad: #ff9b8f;
+        --warn: #e9cf8a;
+        --accent: #8fc7ff;
         --sans: "Segoe UI", system-ui, sans-serif;
         --mono: Consolas, "DejaVu Sans Mono", monospace;
       }
@@ -27,214 +26,313 @@
       html,
       body {
         margin: 0;
-        padding: 0;
         min-height: 100%;
-        background: var(--bg);
+        background: radial-gradient(1200px 600px at 50% -10%, #12202c 0%, var(--bg) 55%);
         color: var(--fg);
         font: 16px/1.45 var(--sans);
       }
-      #brand {
-        padding: 10px 12px;
-        border-bottom: 1px solid var(--line);
-        background: var(--panel);
-        text-align: center;
-      }
-      #brand b {
-        color: var(--bright);
-        font-size: 16px;
-        letter-spacing: 0.12em;
-      }
       .wrap {
-        max-width: 1100px;
+        max-width: 920px;
         margin: 0 auto;
-        padding: 16px;
+        padding: 20px 16px 40px;
       }
-      .panel {
+      .top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 6px 2px 18px;
+      }
+      .brand {
+        color: var(--bright);
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        font-size: 15px;
+      }
+      .brand span {
+        color: var(--accent);
+      }
+      .badge {
         border: 1px solid var(--line);
         background: var(--panel);
-        padding: 16px;
-        margin-bottom: 14px;
+        color: var(--dim);
+        padding: 6px 10px;
+        border-radius: 999px;
+        font: 12px/1 var(--mono);
+        white-space: nowrap;
+      }
+      .hero {
+        border: 1px solid var(--line);
+        background: linear-gradient(180deg, var(--panel2), var(--panel));
+        border-radius: 14px;
+        padding: 24px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
       }
       h1 {
         margin: 0 0 6px;
-        font-size: 22px;
+        font-size: clamp(24px, 4vw, 34px);
+        line-height: 1.1;
         color: var(--bright);
+        letter-spacing: -0.01em;
       }
-      p {
-        margin: 8px 0;
+      h1.fail {
+        color: var(--bad);
       }
-      .muted {
-        color: var(--dim);
+      h1.done {
+        color: var(--ok);
       }
-      .warn {
-        color: var(--warn);
+      h1.running {
+        color: var(--accent);
       }
       #status {
-        font-family: var(--mono);
-        font-size: 15px;
-        color: var(--accent);
         min-height: 24px;
+        color: var(--dim);
+        font-size: 15px;
       }
       #status.running {
         color: var(--accent);
       }
-      #status.armed {
-        color: var(--warn);
-      }
       #status.done {
         color: var(--ok);
-        font-weight: 700;
       }
       #status.fail {
         color: var(--bad);
-        font-weight: 700;
       }
-      .row {
+      .meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 16px;
+        color: var(--dim);
+        font: 12px/1 var(--mono);
+      }
+      .steps {
+        list-style: none;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        margin: 18px 0 0;
+        padding: 0;
+      }
+      .steps li {
+        border: 1px solid var(--line);
+        background: #0c1116;
+        color: var(--dim);
+        border-radius: 9px;
+        padding: 10px 10px;
+        font-size: 12px;
+        line-height: 1.25;
+        transition: border-color 0.2s, color 0.2s, background 0.2s;
+      }
+      .steps li strong {
+        display: block;
+        color: var(--fg);
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 2px;
+      }
+      .steps li.active {
+        border-color: #2d587a;
+        background: #0e1a24;
+        color: var(--accent);
+      }
+      .steps li.done {
+        border-color: #285a43;
+        background: #0d1c15;
+        color: var(--ok);
+      }
+      .steps li.fail {
+        border-color: #6a2f2f;
+        background: #1c1010;
+        color: var(--bad);
+      }
+      .steps li.skip {
+        opacity: 0.55;
+      }
+      .bar {
+        height: 4px;
+        margin-top: 14px;
+        background: #0a0e12;
+        border-radius: 999px;
+        overflow: hidden;
+      }
+      .bar i {
+        display: block;
+        height: 100%;
+        width: 0;
+        background: linear-gradient(90deg, #3a7fb0, #7fe0a8);
+        transition: width 0.35s ease;
+      }
+      .actions {
         display: flex;
         flex-wrap: wrap;
         gap: 10px;
-        align-items: center;
-        margin: 12px 0;
+        margin-top: 20px;
       }
-      .opt {
-        display: inline-flex;
-        gap: 8px;
-        align-items: center;
-        border: 1px solid var(--line);
-        background: var(--sunk);
-        padding: 10px 12px;
-        border-radius: 4px;
-        cursor: pointer;
-      }
-      .opt input {
-        width: 18px;
-        height: 18px;
-      }
-      button,
       .btn {
         display: inline-block;
         border: 1px solid #2b3a4b;
-        background: #16202b;
+        background: #151f2a;
         color: var(--bright);
-        padding: 12px 18px;
-        font: 16px/1 var(--sans);
-        border-radius: 4px;
+        padding: 12px 16px;
+        border-radius: 8px;
+        font: 15px/1 var(--sans);
         cursor: pointer;
         text-decoration: none;
       }
-      button:hover,
       .btn:hover {
-        background: #1c2a38;
-      }
-      button:disabled {
-        opacity: 0.5;
-        cursor: default;
+        background: #1b2835;
       }
       .btn.primary {
-        border-color: #3b6a54;
-        background: #173326;
-        color: #b9f0d1;
+        border-color: #36735a;
+        background: #123426;
+        color: #c3f2d7;
       }
       .btn.danger {
-        border-color: #5a2f2f;
-        background: #2a1717;
-        color: #f0c0b9;
+        border-color: #6a2f2f;
+        background: #241313;
+        color: #ffc1ba;
+      }
+      .btn.ghost {
+        background: transparent;
+        color: var(--dim);
+      }
+      .payload {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        margin-top: 18px;
+        padding-top: 16px;
+        border-top: 1px solid var(--line);
+        color: var(--dim);
+        font-size: 13px;
+      }
+      .payload label {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        border: 1px solid var(--line);
+        background: #0c1116;
+        border-radius: 999px;
+        padding: 7px 11px;
+        cursor: pointer;
+      }
+      .payload input {
+        width: 15px;
+        height: 15px;
+      }
+      #error {
+        display: none;
+        margin-top: 16px;
+        padding: 12px 14px;
+        border: 1px solid #6a2f2f;
+        background: #1a0f0f;
+        color: #ffc1ba;
+        border-radius: 9px;
+        font: 13px/1.45 var(--mono);
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      #log-wrap {
+        margin-top: 18px;
+        display: none;
       }
       #console {
         width: 100%;
-        height: 52vh;
-        min-height: 260px;
+        height: 40vh;
+        min-height: 220px;
         margin: 0;
         padding: 14px;
         overflow: auto;
-        box-sizing: border-box;
+        background: #07090c;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        color: #b8c2ce;
         font: 12px/1.45 var(--mono);
-        background: #131416;
-        color: #c1c2c5;
         white-space: pre-wrap;
       }
       .foot {
         display: flex;
         flex-wrap: wrap;
         gap: 14px;
-        margin-top: 14px;
-        color: var(--dim);
-        font-size: 13px;
+        justify-content: space-between;
+        color: #5f6b79;
+        font-size: 12px;
+        margin-top: 18px;
       }
-      a {
+      .foot a {
+        color: var(--dim);
+        text-decoration: none;
+      }
+      .foot a:hover {
         color: var(--accent);
       }
-      .hidden {
-        display: none;
-      }
-      @media (max-width: 700px) {
+      @media (max-width: 680px) {
         .wrap {
-          padding: 10px;
+          padding: 12px 10px 28px;
         }
-        #console {
-          height: 46vh;
+        .hero {
+          padding: 18px;
+        }
+        .steps {
+          grid-template-columns: repeat(2, 1fr);
         }
       }
     </style>
   </head>
   <body>
-    <div id="brand"><b>wobkot x afterglow</b></div>
-
     <div class="wrap">
-      <div class="panel">
-        <h1>Fast path: Wobkot primitive + Afterglow kernel</h1>
-        <p class="muted">
-          PS4 14.00 - 14.02. Wobkot builds the WebKit primitive, then Afterglow
-          runs its proven kernel stage and payload loader. The fast path is
-          experimental; the proven Afterglow engine is one click away.
-        </p>
-        <p class="warn">
-          Kernel exploit. Save your game and close apps first. A failed attempt
-          can crash or hang the console. Do not close this page if the log says
-          the handles are NOT defused.
-        </p>
-
-        <div class="row">
-          <label class="opt">
-            <input type="radio" name="payload" value="goldhen" checked />
-            <span>GoldHEN (recommended)</span>
-          </label>
-          <label class="opt">
-            <input type="radio" name="payload" value="hen" />
-            <span>ps4-hen</span>
-          </label>
-          <label class="opt">
-            <input type="radio" name="payload" value="none" />
-            <span>no payload</span>
-          </label>
-        </div>
-
-        <div class="row">
-          <label class="opt">
-            <input type="checkbox" id="probe" />
-            <span>run Afterglow environment probe first</span>
-          </label>
-        </div>
-
-        <div class="row">
-          <button id="start" class="btn primary" type="button">start</button>
-          <button id="cancel" class="btn" type="button" style="display: none">cancel</button>
-          <button id="retry" class="btn" type="button" style="display: none">reload and retry</button>
-          <a id="fallback" class="btn" href="index.html" style="display: none">proven Afterglow engine</a>
-          <a id="back" class="btn" href="../index.html" style="display: none">hub</a>
-        </div>
-
-        <div id="status">Loading...</div>
+      <div class="top">
+        <div class="brand">WOBKOT <span>x</span> AFTERGLOW</div>
+        <div class="badge" id="fw">PS4</div>
       </div>
 
-      <pre id="console"></pre>
+      <section class="hero">
+        <h1 id="headline">Fast path</h1>
+        <div id="status">Loading...</div>
+
+        <ol class="steps" id="progress">
+          <li id="step-webkit"><strong>1. WebKit</strong>build primitive</li>
+          <li id="step-validate"><strong>2. Validate</strong>offsets + ROP</li>
+          <li id="step-kernel"><strong>3. Kernel</strong>Afterglow stage</li>
+          <li id="step-payload"><strong>4. Payload</strong>GoldHEN / hen</li>
+        </ol>
+
+        <div class="bar"><i id="bar"></i></div>
+
+        <div class="actions">
+          <button id="start" class="btn primary" type="button">start</button>
+          <button id="retry" class="btn" type="button" style="display: none">reload and retry</button>
+          <a id="fallback" class="btn danger" href="index.html" style="display: none">proven Afterglow</a>
+          <a id="menu" class="btn ghost" href="../index.html?menu=1" style="display: none">menu</a>
+          <button id="toggle-log" class="btn ghost" type="button">show log</button>
+        </div>
+
+        <div class="payload">
+          <span>payload</span>
+          <label><input type="radio" name="payload" value="goldhen" checked /><span>GoldHEN</span></label>
+          <label><input type="radio" name="payload" value="hen" /><span>ps4-hen</span></label>
+          <label><input type="radio" name="payload" value="none" /><span>none</span></label>
+        </div>
+
+        <div id="error"></div>
+        <div id="log-wrap"><pre id="console"></pre></div>
+      </section>
+
+      <div class="meta">
+        <span>Wobkot primitive + Afterglow kernel</span>
+        <span id="timing"></span>
+      </div>
 
       <div class="foot" id="foot">
-        <span>Wobkot: MIT, ufm42</span>
-        <span>Afterglow: AGPL-3.0, well0nez</span>
-        <a href="index.html">proven engine</a>
-        <a href="../primitive-test.html">primitive self-test</a>
-        <a href="../index.html">hub</a>
+        <span>Wobkot: MIT, ufm42 &nbsp; Afterglow: AGPL-3.0, well0nez</span>
+        <span>
+          <a href="index.html">proven engine</a>
+          &nbsp; <a href="../primitive-test.html">self-test</a>
+          &nbsp; <a href="../index.html?menu=1">menu</a>
+        </span>
       </div>
     </div>
 

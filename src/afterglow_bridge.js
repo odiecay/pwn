@@ -4,7 +4,7 @@
 // Wobkot scripts cannot import it directly, so this tiny module loads it and
 // publishes the namespace plus the int64 constructor on globalThis.
 
-import * as Afterglow from '../afterglow/afterglow.js';
+import * as Afterglow from './afterglow_fast.js';
 import { int64 } from '../afterglow/int64.js';
 
 globalThis.Afterglow = Afterglow;

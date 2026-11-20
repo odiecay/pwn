@@ -19,6 +19,7 @@ import argparse
 import hashlib
 import json
 import shutil
+import subprocess
 import sys
 import tempfile
 import urllib.error
@@ -203,6 +204,10 @@ def main() -> int:
             shutil.copyfile(src, dst)
 
         print(f"updated {AFTERGLOW}")
+        subprocess.run(
+            [sys.executable, str(ROOT / "tools" / "build_fast_engine.py"), "--write"],
+            check=True,
+        )
         write_lock(info)
         return 0
 

@@ -4,8 +4,17 @@
 // exploit code keeps working unchanged. It is deliberately small: the pages
 // own the layout, this owns the text.
 
+const DEBUG = (() => {
+  try {
+    return new URLSearchParams(location.search).get('debug') === '1';
+  } catch (err) {
+    return false;
+  }
+})();
+
 const logger = {
-  verbose: true, // enable for debug logs
+  verbose: DEBUG, // debug lines are off unless ?debug=1
+  remote: DEBUG, // POST the log only in debug mode
 
   init() {
     this.console = document.getElementById('console');
@@ -22,11 +31,36 @@ const logger = {
   warn(msg) {
     this.log('[!]', `${msg}`);
   },
+  send_remote(prefix, msg) {
+    if (!this.remote) return;
+
+    const text = `${prefix} ${String(msg)}`;
+
+    try {
+      if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
+        if (navigator.sendBeacon('/log', text)) return;
+      }
+    } catch (err) {
+      // fall through to fetch
+    }
+
+    try {
+      if (typeof fetch === 'function') {
+        fetch('/log', { method: 'POST', body: text, keepalive: true }).catch(() => {});
+      }
+    } catch (err) {
+      // logging must never break the exploit
+    }
+  },
   log(prefix, msg) {
-    if (!this.console) return;
+    if (!this.console) {
+      this.send_remote(prefix, msg);
+      return;
+    }
 
     this.console.append(`${prefix} ${String(msg).replace(/\n/g, `\n${prefix} `)}\n`);
     this.console.scrollTop = this.console.scrollHeight;
+    this.send_remote(prefix, msg);
   },
 };
 

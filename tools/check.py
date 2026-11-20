@@ -45,6 +45,7 @@ REQUIRED = [
     "src/combined.js",
     "src/afterglow_host.js",
     "src/afterglow_bridge.js",
+    "src/afterglow_fast.js",
     "src/primitive_test.js",
     "src/diag.js",
     "afterglow/index.html",
@@ -87,6 +88,7 @@ CLASSIC_JS = [
 
 MODULE_JS = [
     "src/afterglow_bridge.js",
+    "src/afterglow_fast.js",
     "afterglow/afterglow.js",
     "afterglow/int64.js",
     "afterglow/core.js",
@@ -164,6 +166,22 @@ def check_manifest(failures: list[str]) -> None:
         fail("afterglow/cache.appcache", failures)
     else:
         ok("afterglow/cache.appcache")
+
+
+def check_fast_engine(failures: list[str]) -> None:
+    result = subprocess.run(
+        [sys.executable, str(ROOT / "tools" / "build_fast_engine.py"), "--check"],
+        capture_output=True,
+        text=True,
+    )
+
+    if result.returncode != 0:
+        for line in (result.stdout + result.stderr).splitlines():
+            if line.strip():
+                print("     " + line.strip())
+        fail("src/afterglow_fast.js is stale", failures)
+    else:
+        ok("fast Afterglow module")
 
 
 def check_afterglow_tables(failures: list[str]) -> None:
@@ -302,6 +320,7 @@ def main() -> int:
     check_required(failures)
     check_html_refs(failures)
     check_manifest(failures)
+    check_fast_engine(failures)
     check_lock(failures)
     check_afterglow_tables(failures)
     if not args.no_node:
