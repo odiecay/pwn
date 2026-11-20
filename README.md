@@ -20,7 +20,9 @@ PS5                 Wobkot PS5 chain (upstream support)
 ## Quick start (Windows)
 
 1. **Save your game and close apps.** A kernel exploit can crash or hang the
-   console. Do not run this with anything unsaved open.
+   console. Do not run this with anything unsaved open. If the console is
+   already jailbroken on this boot, reboot before running the exploit again:
+   Afterglow refuses to fire against an already-open kernel.
 2. In this folder:
 
    ```powershell
@@ -149,6 +151,7 @@ engine no longer matches upstream; rerun `py tools/update_afterglow.py
 | Page keeps an old build | The server already sends no-cache. Reopen the page; if needed, clear the browser cache. |
 | Port 8000 in use | `py host.py --port 8080` |
 | Console cannot reach the PC | Allow Python through Windows Firewall on the private network; both devices must be on the same LAN. |
+| Browser forces HTTPS | Use the exact `http://...` URL printed by `host.py`. The default server is HTTP; `--https` is optional and uses the bundled localhost certificate. |
 | HTTPS certificate warning | Use HTTP (the default). The bundled certificate is for `localhost`, not the console's view of the PC. |
 | `handles are NOT defused` | Do not close the browser. Cold boot the console; closing the browser is the process exit that hangs. |
 | Console froze after a failed run | Hold the power button until off, then start again. |
