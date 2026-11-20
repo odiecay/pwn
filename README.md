@@ -118,7 +118,8 @@ recovered after two memory prompts on the same boot.
 
 The run page records the last attempts locally and `host.py` prints one
 `[PS4] RUN ok=... sec=...` line per completed run. Newer runs add a phase split:
-`load=... browser=... check=... kernel=...`, which shows where the time went.
+`load=... browser=... check=... module=... kernel=...`, which shows where the
+time went.
 The same line is appended to `host.log` when the server is running. The page
 also allows only one kernel attempt per browser session: after an attempt it
 shows **Reboot required** instead of firing again. If the kernel is already

@@ -12,7 +12,7 @@
   const HISTORY_KEY = 'wobkot.fast.history';
   const ATTEMPT_KEY = 'wobkot.fast.kernelAttempted';
   const ALREADY_KEY = 'wobkot.fast.alreadyJailbroken';
-  const BUILD = '21';
+  const BUILD = '22';
 
   const state = {
     busy: false,
@@ -123,7 +123,7 @@
     setTiming();
   }
 
-  function stopTimer() {
+  function finishTimer() {
     setTiming();
   }
 
@@ -243,7 +243,7 @@
     const phases = entry && entry.phases;
     if (!phases) return '';
     const parts = [];
-    for (const name of ['load', 'browser', 'check', 'kernel']) {
+    for (const name of ['load', 'browser', 'check', 'module', 'kernel']) {
       if (typeof phases[name] === 'number' && isFinite(phases[name])) {
         parts.push(name + ' ' + phases[name].toFixed(1));
       }
@@ -464,12 +464,6 @@
         throw new Error(`This page is for PS4 14.00-14.02. Detected ${version}.`);
       }
 
-      // Warm the kernel module through the HTTP cache. The payload files are
-      // warmed after the heap spray, when the primitive is done, so their
-      // temporary buffers are not competing with the spray.
-      prefetchLink(withVersion('../src/afterglow_bridge.js'));
-      prefetchLink('../src/afterglow_fast.js');
-
       state.step = 'webkit';
       setStep('webkit', 'active');
       setStatus('Building browser primitive...', 'running');
@@ -479,6 +473,12 @@
       markPhase('browser');
       setHint('');
       setStep('webkit', 'done');
+
+      // The spray is done. Warm the kernel module while validation runs; the
+      // payload files are warmed at the kernel stage, right before they are
+      // needed, so no temporary buffer competes with the spray.
+      prefetchLink(withVersion('../src/afterglow_bridge.js'));
+      prefetchLink('../src/afterglow_fast.js');
 
       state.step = 'validate';
       setStep('validate', 'active');
@@ -534,6 +534,8 @@
         else if (text.indexOf('[p] thread rc=0') !== -1) setStatus('Payload thread running...', 'running');
       };
 
+      markPhase('module');
+
       if (query().get('probe') === '1') {
         const probe = Afterglow.probeAfterglow(state.ctx);
         if (!probe.ok) throw new Error(`Afterglow probe refused: ${probe.reasons.join('; ')}`);
@@ -544,7 +546,7 @@
       if (!iface) {
         if (state.alreadyJailbroken) {
           state.done = true;
-          stopTimer();
+          finishTimer();
           markAlreadyJailbroken();
           showAlreadyJailbroken();
           recordRun(true, 'already jailbroken');
@@ -562,7 +564,7 @@
       }
 
       state.done = true;
-      stopTimer();
+      finishTimer();
       markPhase('kernel');
       setStep('kernel', 'done');
 
@@ -587,7 +589,7 @@
       state.kernelTouched = state.kernelTouched || (state.ctx && state.ctx.kernel_touched);
       state.unsafe = state.unsafe || (state.ctx && state.ctx.unsafe === true);
       state.done = true;
-      stopTimer();
+      finishTimer();
       markFailure(err);
     } finally {
       state.busy = false;
